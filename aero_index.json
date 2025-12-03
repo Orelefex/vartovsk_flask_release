@@ -1,0 +1,506 @@
+{
+    "20046": {
+        "name": "ГМО им. Кренкеля (о. Хейса)",
+        "region": "naconf"
+    },
+    "20292": {
+        "name": "м.Челюскин (им. Е.Федорова)",
+        "region": "naconf"
+    },
+    "20674": {
+        "name": "о.Диксон",
+        "region": "naconf"
+    },
+    "20744": {
+        "name": "Малые Кармакулы",
+        "region": "naconf"
+    },
+    "20892": {
+        "name": "Хатанга",
+        "region": "naconf"
+    },
+    "21432": {
+        "name": "о.Котельный",
+        "region": "naconf"
+    },
+    "21647": {
+        "name": "м.Шалаурова",
+        "region": "naconf"
+    },
+    "21946": {
+        "name": "Чокурдах",
+        "region": "naconf"
+    },
+    "21982": {
+        "name": "о.Врангеля",
+        "region": "naconf"
+    },
+    "22008": {
+        "name": "Мурманск",
+        "region": "naconf"
+    },
+    "22217": {
+        "name": "Кандалакша",
+        "region": "naconf"
+    },
+    "22271": {
+        "name": "Шойна",
+        "region": "naconf"
+    },
+    "22522": {
+        "name": "Кемь",
+        "region": "naconf"
+    },
+    "22543": {
+        "name": "Архангельск",
+        "region": "naconf"
+    },
+    "22820": {
+        "name": "Петрозаводск",
+        "region": "naconf"
+    },
+    "22845": {
+        "name": "Каргополь",
+        "region": "naconf"
+    },
+    "23022": {
+        "name": "Амдерма",
+        "region": "naconf"
+    },
+    "23078": {
+        "name": "Норильск",
+        "region": "naconf"
+    },
+    "23205": {
+        "name": "Нарьян-Мар",
+        "region": "naconf"
+    },
+    "23330": {
+        "name": "Салехард",
+        "region": "naconf"
+    },
+    "23415": {
+        "name": "Печора",
+        "region": "naconf"
+    },
+    "23472": {
+        "name": "Туруханск",
+        "region": "naconf"
+    },
+    "23552": {
+        "name": "Тарко-Сале",
+        "region": "naconf"
+    },
+    "23802": {
+        "name": "Сыктывкар",
+        "region": "naconf"
+    },
+    "23884": {
+        "name": "Бор",
+        "region": "naconf"
+    },
+    "23921": {
+        "name": "Ивдель",
+        "region": "naconf"
+    },
+    "23933": {
+        "name": "Ханты-Мансийск",
+        "region": "naconf"
+    },
+    "23955": {
+        "name": "Александровское",
+        "region": "naconf"
+    },
+    "24122": {
+        "name": "Оленек",
+        "region": "naconf"
+    },
+    "24266": {
+        "name": "Верхоянск",
+        "region": "naconf"
+    },
+    "24343": {
+        "name": "Жиганск",
+        "region": "naconf"
+    },
+    "24507": {
+        "name": "Тура",
+        "region": "naconf"
+    },
+    "24641": {
+        "name": "Вилюйск",
+        "region": "naconf"
+    },
+    "24688": {
+        "name": "Оймякон",
+        "region": "naconf"
+    },
+    "24726": {
+        "name": "Мирный",
+        "region": "naconf"
+    },
+    "24817": {
+        "name": "Ербогачен",
+        "region": "naconf"
+    },
+    "24908": {
+        "name": "Ванавара",
+        "region": "naconf"
+    },
+    "24947": {
+        "name": "Олекминск",
+        "region": "naconf"
+    },
+    "24959": {
+        "name": "Якутск",
+        "region": "naconf"
+    },
+    "25042": {
+        "name": "о.Айон",
+        "region": "naconf"
+    },
+    "25123": {
+        "name": "Черский",
+        "region": "naconf"
+    },
+    "25173": {
+        "name": "м.Шмидта",
+        "region": "naconf"
+    },
+    "25399": {
+        "name": "Уэлен",
+        "region": "naconf"
+    },
+    "25403": {
+        "name": "Зырянка",
+        "region": "naconf"
+    },
+    "25428": {
+        "name": "Омолон",
+        "region": "naconf"
+    },
+    "25563": {
+        "name": "Анадырь",
+        "region": "naconf"
+    },
+    "25703": {
+        "name": "Сеймчан",
+        "region": "naconf"
+    },
+    "25913": {
+        "name": "Магадан",
+        "region": "naconf"
+    },
+    "25954": {
+        "name": "Корф",
+        "region": "naconf"
+    },
+    "26075": {
+        "name": "Воейково",
+        "region": "naconf"
+    },
+    "26258": {
+        "name": "Псков",
+        "region": "naconf"
+    },
+    "26298": {
+        "name": "Бологое",
+        "region": "naconf"
+    },
+    "26477": {
+        "name": "Великие Луки",
+        "region": "naconf"
+    },
+    "26702": {
+        "name": "Калининград",
+        "region": "naconf"
+    },
+    "26781": {
+        "name": "Смоленск",
+        "region": "naconf"
+    },
+    "27038": {
+        "name": "Вологда",
+        "region": "naconf"
+    },
+    "27199": {
+        "name": "Киров",
+        "region": "naconf"
+    },
+    "27459": {
+        "name": "Нижний Новгород",
+        "region": "naconf"
+    },
+    "27594": {
+        "name": "Казань",
+        "region": "naconf"
+    },
+    "27707": {
+        "name": "Сухиничи",
+        "region": "naconf"
+    },
+    "27713": {
+        "name": "Долгопрудная (Москва)",
+        "region": "naconf"
+    },
+    "27730": {
+        "name": "Рязань",
+        "region": "naconf"
+    },
+    "27962": {
+        "name": "Пенза",
+        "region": "naconf"
+    },
+    "27995": {
+        "name": "Безенчук",
+        "region": "naconf"
+    },
+    "28225": {
+        "name": "Пермь",
+        "region": "naconf"
+    },
+    "28275": {
+        "name": "Тобольск",
+        "region": "naconf"
+    },
+    "28445": {
+        "name": "Верхнее Дуброво",
+        "region": "naconf"
+    },
+    "28661": {
+        "name": "Курган",
+        "region": "naconf"
+    },
+    "28695": {
+        "name": "Омск",
+        "region": "naconf"
+    },
+    "28722": {
+        "name": "Уфа",
+        "region": "naconf"
+    },
+    "29231": {
+        "name": "Колпашево",
+        "region": "naconf"
+    },
+    "29263": {
+        "name": "Енисейск",
+        "region": "naconf"
+    },
+    "29282": {
+        "name": "Богучаны",
+        "region": "naconf"
+    },
+    "29572": {
+        "name": "Емельяново",
+        "region": "naconf"
+    },
+    "29612": {
+        "name": "Барабинск",
+        "region": "naconf"
+    },
+    "29634": {
+        "name": "Новосибирск",
+        "region": "naconf"
+    },
+    "29698": {
+        "name": "Нижнеудинск",
+        "region": "naconf"
+    },
+    "29839": {
+        "name": "Барнаул",
+        "region": "naconf"
+    },
+    "29862": {
+        "name": "Хакасская(Абакан)",
+        "region": "naconf"
+    },
+    "30054": {
+        "name": "Витим",
+        "region": "naconf"
+    },
+    "30230": {
+        "name": "Киренск",
+        "region": "naconf"
+    },
+    "30309": {
+        "name": "Братск",
+        "region": "naconf"
+    },
+    "30372": {
+        "name": "Чара",
+        "region": "naconf"
+    },
+    "30521": {
+        "name": "Жигалово",
+        "region": "naconf"
+    },
+    "30557": {
+        "name": "Багдарин",
+        "region": "naconf"
+    },
+    "30635": {
+        "name": "Усть-Баргузин",
+        "region": "naconf"
+    },
+    "30673": {
+        "name": "Могоча",
+        "region": "naconf"
+    },
+    "30692": {
+        "name": "Сковородино",
+        "region": "naconf"
+    },
+    "30715": {
+        "name": "Ангарск",
+        "region": "naconf"
+    },
+    "30758": {
+        "name": "Чита",
+        "region": "naconf"
+    },
+    "30935": {
+        "name": "Красный Чикой",
+        "region": "naconf"
+    },
+    "30965": {
+        "name": "Борзя",
+        "region": "naconf"
+    },
+    "31004": {
+        "name": "Алдан",
+        "region": "naconf"
+    },
+    "31088": {
+        "name": "Охотск",
+        "region": "naconf"
+    },
+    "31168": {
+        "name": "Аян",
+        "region": "naconf"
+    },
+    "31300": {
+        "name": "Зея",
+        "region": "naconf"
+    },
+    "31329": {
+        "name": "Экимчан",
+        "region": "naconf"
+    },
+    "31369": {
+        "name": "Николаевск",
+        "region": "naconf"
+    },
+    "31510": {
+        "name": "Благовещенск",
+        "region": "naconf"
+    },
+    "31538": {
+        "name": "Сутур",
+        "region": "naconf"
+    },
+    "31561": {
+        "name": "Комсомольск",
+        "region": "naconf"
+    },
+    "31736": {
+        "name": "Хабаровск",
+        "region": "naconf"
+    },
+    "31770": {
+        "name": "Советская Гавань",
+        "region": "naconf"
+    },
+    "31873": {
+        "name": "Дальнереченск",
+        "region": "naconf"
+    },
+    "31977": {
+        "name": "Сад-город",
+        "region": "naconf"
+    },
+    "32061": {
+        "name": "Александровск",
+        "region": "naconf"
+    },
+    "32098": {
+        "name": "Поронайск",
+        "region": "naconf"
+    },
+    "32150": {
+        "name": "Южно-Сахалинск",
+        "region": "naconf"
+    },
+    "32215": {
+        "name": "Северо-Курильск",
+        "region": "naconf"
+    },
+    "32389": {
+        "name": "Ключи",
+        "region": "naconf"
+    },
+    "32477": {
+        "name": "Соболево",
+        "region": "naconf"
+    },
+    "32540": {
+        "name": "Петропавловск",
+        "region": "naconf"
+    },
+    "32618": {
+        "name": "о.Беринга",
+        "region": "naconf"
+    },
+    "34009": {
+        "name": "Курск",
+        "region": "naconf"
+    },
+    "34122": {
+        "name": "Воронеж",
+        "region": "naconf"
+    },
+    "34172": {
+        "name": "Саратов",
+        "region": "naconf"
+    },
+    "34247": {
+        "name": "Калач",
+        "region": "naconf"
+    },
+    "34467": {
+        "name": "Волгоград",
+        "region": "naconf"
+    },
+    "34731": {
+        "name": "Ростов-на-Дону",
+        "region": "naconf"
+    },
+    "34858": {
+        "name": "Дивное",
+        "region": "naconf"
+    },
+    "34882": {
+        "name": "Астрахань",
+        "region": "naconf"
+    },
+    "35121": {
+        "name": "Оренбург",
+        "region": "naconf"
+    },
+    "36096": {
+        "name": "Кызыл",
+        "region": "naconf"
+    },
+    "37015": {
+        "name": "Туапсе",
+        "region": "naconf"
+    },
+    "37055": {
+        "name": "Минеральные Воды",
+        "region": "naconf"
+    },
+    "37259": {
+        "name": "Махачкала",
+        "region": "naconf"
+    }
+}

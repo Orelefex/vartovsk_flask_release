@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Архив METAR/TAF - Meteostart.ru</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/">
+                    <span class="logo-text">Meteostart.ru</span>
+                </a>
+            </div>
+
+            <button class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        METAR/TAF
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/aero" class="nav-link">
+                        Аэрологические диаграммы
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <div class="header-logo">
+                <span class="logo-icon"></span>
+                <h1>Архив METAR/TAF</h1>
+            </div>
+            <p class="subtitle" id="airport-subtitle">Аэропорт: <span id="archive-airport-name"></span></p>
+            <button onclick="window.location.href='/'" class="btn btn-secondary" style="margin-top: 15px;">
+                ← Вернуться назад
+            </button>
+        </header>
+
+        <main>
+            <!-- Фильтр по датам -->
+            <div class="input-section">
+                <h3>Выбор периода (время UTC)</h3>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div>
+                        <label for="date-from">От (UTC):</label>
+                        <input type="datetime-local" id="date-from" class="date-input">
+                    </div>
+                    <div>
+                        <label for="date-to">До (UTC):</label>
+                        <input type="datetime-local" id="date-to" class="date-input">
+                    </div>
+                </div>
+                <div class="button-group">
+                    <button id="load-archive-btn" class="btn btn-primary">Загрузить архив</button>
+                    <button id="reset-dates-btn" class="btn btn-secondary">Сбросить даты</button>
+                </div>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Загрузка архива...</p>
+            </div>
+
+            <div id="error-message" class="error-message" style="display: none;"></div>
+
+            <!-- Архив METAR -->
+            <div id="archive-metar-section" class="result-section" style="display: none;">
+                <h2>Архив METAR/SPECI за последние 24 часа</h2>
+                <div class="result-card">
+                    <div id="archive-metar-table"></div>
+                </div>
+            </div>
+
+            <!-- Архив TAF -->
+            <div id="archive-taf-section" class="result-section" style="display: none;">
+                <h2>Архив TAF за последние 72 часа</h2>
+                <div class="result-card">
+                    <div id="archive-taf-table"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p><strong>Meteostart.ru</strong> - Авиационная метеорология</p>
+            <p class="sources">Источники: avia-meteo.ru, ogimet.com</p>
+        </footer>
+    </div>
+
+    <script>
+        // Mobile navigation toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        document.addEventListener('click', function(event) {
+            const isClickInside = navMenu.contains(event.target) || navToggle.contains(event.target);
+            if (!isClickInside && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/archive.js') }}"></script>
+</body>
+</html>

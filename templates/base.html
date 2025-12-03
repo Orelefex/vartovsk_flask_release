@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Meteostart.ru - Авиационная метеорология{% endblock %}</title>
+    <meta name="description" content="Профессиональные инструменты для расшифровки METAR, TAF и анализа аэрологических данных">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/">
+                    <span class="logo-icon">⛅</span>
+                    <span class="logo-text">Meteoaster.ru</span>
+                </a>
+            </div>
+
+            <button class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link {% if request.endpoint == 'index' %}active{% endif %}">
+                        📊 Главная
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/metar" class="nav-link {% if request.endpoint == 'metar_page' %}active{% endif %}">
+                        ✈️ METAR/TAF
+                    </a>
+                </li>
+                <li class="nav-item coming-soon">
+                    <a href="#" class="nav-link" title="Скоро">
+                        📈 Аэрологические диаграммы
+                        <span class="badge">скоро</span>
+                    </a>
+                </li>
+                <li class="nav-item coming-soon">
+                    <a href="#" class="nav-link" title="Скоро">
+                        🗺️ Метеокарты
+                        <span class="badge">скоро</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Основной контент -->
+    <div class="main-content">
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Футер -->
+    <footer class="site-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>Meteostart.ru</h3>
+                <p>Профессиональные инструменты для авиационной метеорологии</p>
+            </div>
+
+            <div class="footer-section">
+                <h4>Возможности</h4>
+                <ul>
+                    <li>Декодирование METAR/TAF</li>
+                    <li>Аэрологические диаграммы (скоро)</li>
+                </ul>
+            </div>
+
+            <div class="footer-section">
+                <h4>Источники данных</h4>
+                <ul>
+                    <li>avia-meteo.ru</li>
+                    <li>metartaf.ru</li>
+                    <li>University of Wyoming</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="footer-bottom">
+            <p>&copy; 2025 Meteostart.ru </p>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile navigation toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInside = navMenu.contains(event.target) || navToggle.contains(event.target);
+            if (!isClickInside && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

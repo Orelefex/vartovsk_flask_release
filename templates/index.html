@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meteostart.ru - Авиационная метеорология</title>
+    <meta name="description" content="Расшифровка METAR, TAF, информация о курсах ВПП">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/">
+                    <span class="logo-text">Meteostart.ru</span>
+                </a>
+            </div>
+
+            <button class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link active">
+                        METAR/TAF
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/aero" class="nav-link">
+                        Аэрологические диаграммы
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <div class="header-logo">
+                <span class="logo-icon"></span>
+                <h1>METAR/TAF Декодер</h1>
+            </div>
+            <p class="subtitle">Автоматическая загрузка и расшифровка авиационных метеосводок</p>
+        </header>
+
+        <main>
+            <!-- Автозагрузка по ICAO -->
+            <div id="auto-fetch-section" class="input-section">
+                <label for="icao-search">Поиск аэропорта по коду ICAO или названию:</label>
+                <div class="search-container">
+                    <input
+                        type="text"
+                        id="icao-search"
+                        placeholder="Введите ICAO код (например: UUEE) или название аэропорта"
+                        autocomplete="off"
+                    >
+                    <div id="search-results" class="search-results"></div>
+                </div>
+
+                <!-- Выбранные аэропорты -->
+                <div id="selected-airports" class="selected-airports" style="display: none; margin-top: 15px;">
+                    <label style="margin-bottom: 8px; display: block;">Выбранные аэропорты:</label>
+                    <div id="airports-list" class="airports-list"></div>
+                </div>
+
+                <div class="button-group">
+                    <button id="fetch-btn" class="btn btn-primary">Загрузить METAR/TAF</button>
+                    <button id="clear-btn" class="btn btn-secondary">Очистить</button>
+                </div>
+
+                <div id="fetch-info" class="info-box" style="display: none;">
+                    <p><strong>Аэропорт:</strong> <span id="airport-name"></span></p>
+                    <p><strong>ICAO:</strong> <span id="airport-icao"></span></p>
+                    <p id="runway-info" style="display: none;"><strong>🛫 Курсы ВПП:</strong> <span id="runway-headings"></span></p>
+                </div>
+
+                <!-- Панель настроек -->
+                <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                    <!-- Переключатель времени -->
+                    <div class="info-box" style="flex: 1; min-width: 250px; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); border: none; color: white;">
+                        <label style="display: flex; align-items: center; gap: 10px; font-weight: 500; cursor: pointer;">
+                            <input type="checkbox" id="local-time-toggle" style="width: 20px; height: 20px; cursor: pointer;">
+                            <span> Показывать местное время</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Панель автообновления -->
+                <div id="auto-refresh-panel" class="info-box" style="display: none; margin-top: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                        <div style="display: flex; align-items: center; gap: 15px;">
+                            <label style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="auto-refresh-toggle" style="width: 20px; height: 20px; cursor: pointer;">
+                                <span>Оперативный режим (обновление каждые 10 минут)</span>
+                            </label>
+                        </div>
+                        <div id="auto-refresh-status" style="display: flex; align-items: center; gap: 8px; font-size: 14px;">
+                            <span id="refresh-timer">⏸ Остановлено</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="loading" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Декодирование...</p>
+            </div>
+
+            <div id="error-message" class="error-message" style="display: none;"></div>
+
+            <!-- METAR секция (сверху) -->
+            <div id="result-section" class="result-section" style="display: none;">
+                <h2>METAR - Последняя сводка</h2>
+
+                <div class="result-card">
+                    <div id="metar-table"></div>
+                </div>
+            </div>
+
+            <!-- История METAR -->
+            <div id="metar-history-section" class="result-section" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 style="margin: 0;">Последние 5 METAR/SPECI</h2>
+                    <button id="archive-btn" class="btn btn-secondary btn-small">Архив METAR/TAF</button>
+                </div>
+
+                <div class="result-card">
+                    <div id="metar-history-table"></div>
+                </div>
+            </div>
+
+            <!-- TAF секция (снизу) -->
+            <div id="taf-section" class="taf-section" style="display: none;">
+                <h2>TAF - Последний прогноз</h2>
+                <div class="result-card">
+                    <pre id="taf-raw"></pre>
+                </div>
+            </div>
+
+            <div id="taf-decoded-section" class="result-section" style="display: none;">
+                <h2>TAF - Расшифровка последнего прогноза</h2>
+                <div class="result-card">
+                    <pre id="taf-decoded-output"></pre>
+                </div>
+            </div>
+
+            <!-- История TAF -->
+            <div id="taf-history-section" class="result-section" style="display: none;">
+                <h2>Последние 3 TAF</h2>
+
+                <div class="result-card">
+                    <div id="taf-history-table"></div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p><strong>Meteostart.ru</strong> - Авиационная метеорология</p>
+            <p class="sources">Источники: avia-meteo.ru, ogimet.com</p>
+        </footer>
+    </div>
+
+    <script>
+        // Mobile navigation toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInside = navMenu.contains(event.target) || navToggle.contains(event.target);
+            if (!isClickInside && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
+        });
+    </script>
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

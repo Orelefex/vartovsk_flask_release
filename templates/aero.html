@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аэрологические диаграммы - Meteostart.ru</title>
+    <meta name="description" content="Аэрологические диаграммы и радиозондирование">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+</head>
+<body>
+    <!-- Навигация -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <a href="/">
+                    <span class="logo-icon"></span>
+                    <span class="logo-text">Meteostart.ru</span>
+                </a>
+            </div>
+
+            <button class="nav-toggle" id="nav-toggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+            <ul class="nav-menu" id="nav-menu">
+                <li class="nav-item">
+                    <a href="/" class="nav-link">
+                        METAR/TAF
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="/aero" class="nav-link active">
+                        Аэрологические диаграммы
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <header>
+            <div class="header-logo">
+                <span class="logo-icon"></span>
+                <h1>Аэрологические диаграммы</h1>
+            </div>
+            <p class="subtitle">Вертикальные профили атмосферы на основе данных радиозондирования</p>
+        </header>
+
+        <main>
+            <!-- Форма выбора параметров -->
+            <div class="input-section">
+                <label for="station-select">Станция радиозондирования:</label>
+                <div class="search-container">
+                    <select id="station-select" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem;">
+                        <option value="">Загрузка станций...</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                    <div>
+                        <label for="date-input">Дата зондирования:</label>
+                        <input type="date" id="date-input" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem;">
+                    </div>
+                    <div>
+                        <label for="hour-select">Срок зондирования (UTC):</label>
+                        <select id="hour-select" style="width: 100%; padding: 12px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 1rem;">
+                            <option value="00">00:00 UTC</option>
+                            <option value="12">12:00 UTC</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="button-group" style="margin-top: 20px;">
+                    <button id="build-btn" class="btn btn-primary"> Построить диаграмму</button>
+                    <button id="clear-aero-btn" class="btn btn-secondary">Очистить</button>
+                </div>
+            </div>
+
+            <!-- Индикатор загрузки -->
+            <div id="loading-aero" class="loading" style="display: none;">
+                <div class="spinner"></div>
+                <p>Получение данных и построение диаграмм...</p>
+            </div>
+
+            <!-- Сообщения об ошибках -->
+            <div id="error-aero" class="error-message" style="display: none;"></div>
+
+            <!-- Информация о станции -->
+            <div id="station-info" class="info-box" style="display: none; margin-top: 20px;">
+                <h3 id="station-title"></h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-top: 10px;">
+                    <div>
+                        <strong>Дата:</strong> <span id="info-date"></span>
+                    </div>
+                    <div>
+                        <strong>Срок:</strong> <span id="info-hour"></span>
+                    </div>
+                    <div>
+                        <strong>Уровней данных:</strong> <span id="info-levels"></span>
+                    </div>
+                    <div>
+                        <strong>Приземная T:</strong> <span id="info-temp"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Индексы неустойчивости -->
+            <div id="indices-section" style="display: none; margin-top: 30px;"></div>
+
+            <!-- Графики -->
+            <div id="charts-section" style="display: none; margin-top: 30px;">
+                <h2>Аэрологические диаграммы Skew-T</h2>
+                <div class="result-card">
+                    <div id="temp-chart" style="width: 100%; height: 600px;"></div>
+                </div>
+
+                <div class="result-card" style="margin-top: 20px;">
+                    <div id="wind-chart" style="width: 100%; height: 600px;"></div>
+                </div>
+            </div>
+
+            <!-- Таблица данных -->
+            <div id="data-table-section" style="display: none; margin-top: 30px;">
+                <h2>Данные радиозондирования</h2>
+                <div class="result-card" style="overflow-x: auto;">
+                    <table class="metar-table" id="sounding-table">
+                        <thead>
+                            <tr>
+                                <th>Давление (гПа)</th>
+                                <th>Температура (°C)</th>
+                                <th>Точка росы (°C)</th>
+                                <th>Ветер (км/ч)</th>
+                                <th>Направление (°)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="sounding-tbody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Справочная информация -->
+            <div class="result-section" style="margin-top: 30px;">
+                <h2>Справочная информация</h2>
+                <div class="result-card">
+                    <h3>О данных радиозондирования:</h3>
+                    <ul style="margin: 10px 0; padding-left: 20px; line-height: 1.8;">
+                        <li><strong>Источник:</strong> University of Wyoming - атмосферное зондирование</li>
+                        <li><strong>Обновление:</strong> 2 раза в сутки (00:00 и 12:00 UTC)</li>
+                        <li><strong>Доступность данных:</strong> последние 7-14 дней</li>
+                        <li><strong>Параметры:</strong> температура, точка росы, ветер, давление</li>
+                    </ul>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p><strong>Meteostart.ru</strong> - Авиационная метеорология</p>
+            <p class="sources">Источник данных: University of Wyoming</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/aero.js') }}"></script>
+    <script>
+        // Mobile navigation toggle
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+
+        navToggle.addEventListener('click', function() {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        // Close menu when clicking outside
+        document.addEventListener('click', function(event) {
+            const isClickInside = navMenu.contains(event.target) || navToggle.contains(event.target);
+            if (!isClickInside && navMenu.classList.contains('active')) {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
