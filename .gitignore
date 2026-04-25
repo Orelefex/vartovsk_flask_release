@@ -1,0 +1,9 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.env
+logs/
+*.log
+.venv/
+Снимок_экрана.png
+Снимок_экрана2.png

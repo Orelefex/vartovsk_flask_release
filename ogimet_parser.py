@@ -8,11 +8,15 @@ import requests
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Tuple, List, Dict
 
+from bs4 import BeautifulSoup
+from config import config
+from logger_config import setup_logging
+
+logger = setup_logging(__name__)
+
 
 class OgimetParser:
     """Класс для работы с данными OGIMET"""
-
-    BASE_URL = "https://ogimet.com/display_metars2.php"
 
     def __init__(self):
         self.session = requests.Session()
@@ -25,6 +29,39 @@ class OgimetParser:
             'Upgrade-Insecure-Requests': '1'
         })
 
+    def _fetch(self, params: dict) -> Optional[str]:
+        """
+        Выполняет запрос к OGIMET и извлекает текст из <pre> тега.
+
+        Args:
+            params: словарь параметров для GET-запроса
+
+        Returns:
+            Текст ответа от OGIMET или None в случае ошибки
+        """
+        icao = params.get('lugar', '???')
+        try:
+            response = self.session.get(
+                config.OGIMET_BASE_URL, params=params, timeout=config.OGIMET_TIMEOUT
+            )
+            response.raise_for_status()
+
+            text = response.text
+            if '<pre>' in text and '</pre>' in text:
+                soup = BeautifulSoup(text, 'html.parser')
+                pre = soup.find('pre')
+                if pre:
+                    return pre.get_text()
+
+            return text
+
+        except requests.Timeout:
+            logger.error("Таймаут при запросе к OGIMET для %s", icao)
+            return None
+        except requests.RequestException as e:
+            logger.error("Ошибка при запросе к OGIMET для %s: %s", icao, e)
+            return None
+
     def fetch_raw_data(self, icao: str, hours: int = 24) -> Optional[str]:
         """
         Получает сырые данные с OGIMET для указанного аэропорта
@@ -36,46 +73,29 @@ class OgimetParser:
         Returns:
             Текст ответа от OGIMET или None в случае ошибки
         """
-        try:
-            now = datetime.now(timezone.utc)
-            start_time = now - timedelta(hours=hours)
+        now = datetime.now(timezone.utc)
+        start_time = now - timedelta(hours=hours)
 
-            params = {
-                'lang': 'en',
-                'lugar': icao.upper(),
-                'tipo': 'ALL',  # METAR + SPECI
-                'ord': 'REV',   # Обратный порядок (новые первыми)
-                'nil': 'SI',    # Включить NIL отчеты
-                'fmt': 'txt',   # Текстовый формат
-                'ano': start_time.year,
-                'mes': f'{start_time.month:02d}',
-                'day': f'{start_time.day:02d}',
-                'hora': f'{start_time.hour:02d}',
-                'anof': now.year,
-                'mesf': f'{now.month:02d}',
-                'dayf': f'{now.day:02d}',
-                'horaf': f'{now.hour:02d}',
-                'minf': f'{now.minute:02d}',
-                'send': 'send'
-            }
+        params = {
+            'lang': 'en',
+            'lugar': icao.upper(),
+            'tipo': 'ALL',
+            'ord': 'REV',
+            'nil': 'SI',
+            'fmt': 'txt',
+            'ano': start_time.year,
+            'mes': f'{start_time.month:02d}',
+            'day': f'{start_time.day:02d}',
+            'hora': f'{start_time.hour:02d}',
+            'anof': now.year,
+            'mesf': f'{now.month:02d}',
+            'dayf': f'{now.day:02d}',
+            'horaf': f'{now.hour:02d}',
+            'minf': f'{now.minute:02d}',
+            'send': 'send'
+        }
 
-            response = self.session.get(self.BASE_URL, params=params, timeout=15)
-            response.raise_for_status()
-
-            # Извлекаем текст из <pre> тега если это HTML
-            text = response.text
-            if '<pre>' in text and '</pre>' in text:
-                from bs4 import BeautifulSoup
-                soup = BeautifulSoup(text, 'html.parser')
-                pre = soup.find('pre')
-                if pre:
-                    return pre.get_text()
-
-            return text
-
-        except requests.RequestException as e:
-            print(f"Ошибка при запросе к OGIMET для {icao}: {e}")
-            return None
+        return self._fetch(params)
 
     def fetch_raw_data_by_dates(self, icao: str, start_time: datetime, end_time: datetime) -> Optional[str]:
         """
@@ -89,43 +109,26 @@ class OgimetParser:
         Returns:
             Текст ответа от OGIMET или None в случае ошибки
         """
-        try:
-            params = {
-                'lang': 'en',
-                'lugar': icao.upper(),
-                'tipo': 'ALL',  # METAR + SPECI
-                'ord': 'REV',   # Обратный порядок (новые первыми)
-                'nil': 'SI',    # Включить NIL отчеты
-                'fmt': 'txt',   # Текстовый формат
-                'ano': start_time.year,
-                'mes': f'{start_time.month:02d}',
-                'day': f'{start_time.day:02d}',
-                'hora': f'{start_time.hour:02d}',
-                'anof': end_time.year,
-                'mesf': f'{end_time.month:02d}',
-                'dayf': f'{end_time.day:02d}',
-                'horaf': f'{end_time.hour:02d}',
-                'minf': f'{end_time.minute:02d}',
-                'send': 'send'
-            }
+        params = {
+            'lang': 'en',
+            'lugar': icao.upper(),
+            'tipo': 'ALL',
+            'ord': 'REV',
+            'nil': 'SI',
+            'fmt': 'txt',
+            'ano': start_time.year,
+            'mes': f'{start_time.month:02d}',
+            'day': f'{start_time.day:02d}',
+            'hora': f'{start_time.hour:02d}',
+            'anof': end_time.year,
+            'mesf': f'{end_time.month:02d}',
+            'dayf': f'{end_time.day:02d}',
+            'horaf': f'{end_time.hour:02d}',
+            'minf': f'{end_time.minute:02d}',
+            'send': 'send'
+        }
 
-            response = self.session.get(self.BASE_URL, params=params, timeout=15)
-            response.raise_for_status()
-
-            # Извлекаем текст из <pre> тега если это HTML
-            text = response.text
-            if '<pre>' in text and '</pre>' in text:
-                from bs4 import BeautifulSoup
-                soup = BeautifulSoup(text, 'html.parser')
-                pre = soup.find('pre')
-                if pre:
-                    return pre.get_text()
-
-            return text
-
-        except requests.RequestException as e:
-            print(f"Ошибка при запросе к OGIMET для {icao}: {e}")
-            return None
+        return self._fetch(params)
 
     def parse_metars(self, raw_data: str, icao: str) -> List[Dict[str, str]]:
         """

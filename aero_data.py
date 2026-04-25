@@ -2,16 +2,18 @@
 Модуль для работы с данными радиозондирования
 Получает данные с University of Wyoming
 """
+
 import json
-import requests
-import numpy as np
 from pathlib import Path
+
+import numpy as np
+import requests
 
 
 class AeroDataFetcher:
     """Класс для получения и обработки данных радиозондирования"""
 
-    def __init__(self, stations_file='aero_index.json'):
+    def __init__(self, stations_file="aero_index.json"):
         """
         Инициализация
 
@@ -29,7 +31,7 @@ class AeroDataFetcher:
                 print(f"Предупреждение: Файл '{self.stations_file}' не найден.")
                 return {}
 
-            with open(stations_path, 'r', encoding='utf-8') as f:
+            with open(stations_path, "r", encoding="utf-8") as f:
                 stations = json.load(f)
             return stations
         except Exception as e:
@@ -45,7 +47,7 @@ class AeroDataFetcher:
         """
         return self.stations
 
-    def fetch_sounding_data(self, station_id, date_str, hour='00'):
+    def fetch_sounding_data(self, station_id, date_str, hour="00"):
         """
         Получает данные радиозондирования с University of Wyoming
 
@@ -72,7 +74,7 @@ class AeroDataFetcher:
                 return None, f"Станция {station_id} не найдена в базе данных"
 
             station_info = self.stations[station_id]
-            region = station_info['region']
+            region = station_info["region"]
 
             # Парсинг даты
             year = date_str[:4]
@@ -82,13 +84,13 @@ class AeroDataFetcher:
             # Формируем URL для University of Wyoming
             url = "https://weather.uwyo.edu/cgi-bin/sounding"
             params = {
-                'region': region,
-                'TYPE': 'TEXT:LIST',
-                'YEAR': year,
-                'MONTH': month,
-                'FROM': day + hour,
-                'TO': day + hour,
-                'STNM': station_id
+                "region": region,
+                "TYPE": "TEXT:LIST",
+                "YEAR": year,
+                "MONTH": month,
+                "FROM": day + hour,
+                "TO": day + hour,
+                "STNM": station_id,
             }
 
             # Запрос к серверу
@@ -99,13 +101,16 @@ class AeroDataFetcher:
             data = self._parse_uwyo_response(response.text)
 
             if not data:
-                return None, f"Не найдены данные зондирования для станции {station_id} на {date_str} {hour}:00 UTC"
+                return (
+                    None,
+                    f"Не найдены данные зондирования для станции {station_id} на {date_str} {hour}:00 UTC",
+                )
 
             # Добавляем метаданные
-            data['station_id'] = station_id
-            data['station_name'] = station_info['name']
-            data['region'] = region
-            data['date_time'] = f"{year}-{month}-{day}T{hour}:00:00Z"
+            data["station_id"] = station_id
+            data["station_name"] = station_info["name"]
+            data["region"] = region
+            data["date_time"] = f"{year}-{month}-{day}T{hour}:00:00Z"
 
             return data, None
 
@@ -115,18 +120,10 @@ class AeroDataFetcher:
             return None, f"Ошибка обработки данных: {str(e)}"
 
     def _parse_uwyo_response(self, text_data):
-        """
-        Парсит текстовый ответ от University of Wyoming
-
-        Args:
-            text_data: текст ответа от сервера
-
-        Returns:
-            dict или None: словарь с данными или None если данных нет
-        """
-        lines = text_data.split('\n')
+        lines = text_data.split("\n")
 
         pressure = []
+        height = []  # НОВОЕ: высота в метрах
         temperature = []
         dewpoint = []
         u_wind = []
@@ -138,50 +135,50 @@ class AeroDataFetcher:
         for line in lines:
             line = line.strip()
 
-            # Ищем заголовок таблицы данных
-            if 'PRES   HGHT   TEMP   DWPT   RELH   MIXR   DRCT   SKNT   THTA   THTE   THTV' in line:
+            if (
+                "PRES   HGHT   TEMP   DWPT   RELH   MIXR   DRCT   SKNT   THTA   THTE   THTV"
+                in line
+            ):
                 data_started = True
                 continue
 
             if not data_started:
                 continue
 
-            # Останавливаемся на конце данных
-            if (line.startswith('Station') or
-                line.startswith('</PRE>') or
-                'Station identifier' in line):
+            if (
+                line.startswith("Station")
+                or line.startswith("</PRE>")
+                or "Station identifier" in line
+            ):
                 break
 
-            if not line or line.startswith('-'):
+            if not line or line.startswith("-"):
                 continue
 
-            # Парсим строку данных
             parts = line.split()
             if len(parts) < 11:
                 continue
 
             try:
-                # Извлекаем данные
-                p = float(parts[0])  # Давление
-                t = float(parts[2]) if parts[2] != '-9999.00' else None  # Температура
-                td = float(parts[3]) if parts[3] != '-9999.00' else None  # Точка росы
-                wind_dir = float(parts[6]) if parts[6] != '-9999.00' else None  # Направление
-                wind_speed = float(parts[7]) if parts[7] != '-9999.00' else None  # Скорость
+                p = float(parts[0])
+                h = float(parts[1]) if parts[1] != "-9999.00" else None  # НОВОЕ
+                t = float(parts[2]) if parts[2] != "-9999.00" else None
+                td = float(parts[3]) if parts[3] != "-9999.00" else None
+                wind_dir = float(parts[6]) if parts[6] != "-9999.00" else None
+                wind_speed = float(parts[7]) if parts[7] != "-9999.00" else None
 
-                # Пропускаем уровни с отсутствующими основными данными
                 if t is None or td is None:
                     continue
 
                 pressure.append(p)
+                height.append(h)  # НОВОЕ
                 temperature.append(t)
                 dewpoint.append(td)
                 data_found = True
 
-                # Конвертируем ветер из узлов в км/ч и в компоненты
                 if wind_dir is not None and wind_speed is not None:
-                    ws_kmh = wind_speed * 1.852  # узлы -> км/ч
+                    ws_kmh = wind_speed * 1.852
                     wd_rad = np.radians(wind_dir)
-                    # Метеорологическая конвенция (откуда дует ветер)
                     u = -ws_kmh * np.sin(wd_rad)
                     v = -ws_kmh * np.cos(wd_rad)
                 else:
@@ -194,16 +191,16 @@ class AeroDataFetcher:
             except (ValueError, IndexError):
                 continue
 
-        # Проверяем достаточность данных
         if not data_found or len(pressure) < 5:
             return None
 
         return {
-            'pressure': pressure,
-            'temperature': temperature,
-            'dewpoint': dewpoint,
-            'u_wind': u_wind,
-            'v_wind': v_wind
+            "pressure": pressure,
+            "height": height,  # НОВОЕ
+            "temperature": temperature,
+            "dewpoint": dewpoint,
+            "u_wind": u_wind,
+            "v_wind": v_wind,
         }
 
     def calculate_wind_speed_direction(self, u_wind, v_wind):
@@ -242,9 +239,9 @@ class AeroDataFetcher:
             dict: словарь с рассчитанными индексами
         """
         try:
-            pressure = np.array(data['pressure'])
-            temperature = np.array(data['temperature'])
-            dewpoint = np.array(data['dewpoint'])
+            pressure = np.array(data["pressure"])
+            temperature = np.array(data["temperature"])
+            dewpoint = np.array(data["dewpoint"])
 
             indices = {}
 
@@ -259,8 +256,8 @@ class AeroDataFetcher:
                 idx = np.searchsorted(pressure[::-1], p_level)
                 if idx == 0 or idx >= len(pressure):
                     return None
-                p1, p2 = pressure[::-1][idx-1], pressure[::-1][idx]
-                v1, v2 = values[::-1][idx-1], values[::-1][idx]
+                p1, p2 = pressure[::-1][idx - 1], pressure[::-1][idx]
+                v1, v2 = values[::-1][idx - 1], values[::-1][idx]
                 return v1 + (v2 - v1) * (p_level - p1) / (p2 - p1)
 
             # Индекс Фауста (Faust Index)
@@ -272,21 +269,21 @@ class AeroDataFetcher:
 
             if t850 is not None and t500 is not None:
                 faust_index = t850 - t500
-                indices['faust'] = round(faust_index, 1)
+                indices["faust"] = round(faust_index, 1)
 
                 # Оценка индекса Фауста
                 if faust_index < 24:
-                    indices['faust_rating'] = 'Устойчиво'
-                    indices['faust_color'] = '#4CAF50'  # зеленый
+                    indices["faust_rating"] = "Устойчиво"
+                    indices["faust_color"] = "#4CAF50"  # зеленый
                 elif faust_index < 28:
-                    indices['faust_rating'] = 'Слабая неустойчивость'
-                    indices['faust_color'] = '#FFC107'  # желтый
+                    indices["faust_rating"] = "Слабая неустойчивость"
+                    indices["faust_color"] = "#FFC107"  # желтый
                 elif faust_index < 32:
-                    indices['faust_rating'] = 'Умеренная неустойчивость'
-                    indices['faust_color'] = '#FF9800'  # оранжевый
+                    indices["faust_rating"] = "Умеренная неустойчивость"
+                    indices["faust_color"] = "#FF9800"  # оранжевый
                 else:
-                    indices['faust_rating'] = 'Сильная неустойчивость'
-                    indices['faust_color'] = '#F44336'  # красный
+                    indices["faust_rating"] = "Сильная неустойчивость"
+                    indices["faust_color"] = "#F44336"  # красный
 
             # Индекс Вайтинга (Whiting Index)
             # WI = T850 - T500 - (Td850 - 10)
@@ -297,21 +294,21 @@ class AeroDataFetcher:
 
             if t850 is not None and t500 is not None and td850 is not None:
                 whiting_index = (t850 - t500) - (td850 - 10)
-                indices['whiting'] = round(whiting_index, 1)
+                indices["whiting"] = round(whiting_index, 1)
 
                 # Оценка индекса Вайтинга
                 if whiting_index < -3:
-                    indices['whiting_rating'] = 'Конвекция маловероятна'
-                    indices['whiting_color'] = '#4CAF50'  # зеленый
+                    indices["whiting_rating"] = "Конвекция маловероятна"
+                    indices["whiting_color"] = "#4CAF50"  # зеленый
                 elif whiting_index < 0:
-                    indices['whiting_rating'] = 'Слабая вероятность'
-                    indices['whiting_color'] = '#8BC34A'  # светло-зеленый
+                    indices["whiting_rating"] = "Слабая вероятность"
+                    indices["whiting_color"] = "#8BC34A"  # светло-зеленый
                 elif whiting_index < 4:
-                    indices['whiting_rating'] = 'Умеренная вероятность гроз'
-                    indices['whiting_color'] = '#FF9800'  # оранжевый
+                    indices["whiting_rating"] = "Умеренная вероятность гроз"
+                    indices["whiting_color"] = "#FF9800"  # оранжевый
                 else:
-                    indices['whiting_rating'] = 'Высокая вероятность гроз'
-                    indices['whiting_color'] = '#F44336'  # красный
+                    indices["whiting_rating"] = "Высокая вероятность гроз"
+                    indices["whiting_color"] = "#F44336"  # красный
 
             # Добавим также базовые параметры для информации
             t850_val = get_value_at_level(850, temperature)
@@ -319,11 +316,11 @@ class AeroDataFetcher:
             td850_val = get_value_at_level(850, dewpoint)
 
             if t850_val is not None:
-                indices['t850'] = round(t850_val, 1)
+                indices["t850"] = round(t850_val, 1)
             if t500_val is not None:
-                indices['t500'] = round(t500_val, 1)
+                indices["t500"] = round(t500_val, 1)
             if td850_val is not None:
-                indices['td850'] = round(td850_val, 1)
+                indices["td850"] = round(td850_val, 1)
 
             return indices
 
@@ -334,6 +331,7 @@ class AeroDataFetcher:
 
 # Для удобства создаем singleton instance
 _fetcher = None
+
 
 def get_fetcher():
     """Возвращает singleton instance AeroDataFetcher"""
@@ -349,7 +347,7 @@ def get_stations():
     return get_fetcher().get_stations()
 
 
-def fetch_sounding(station_id, date_str, hour='00'):
+def fetch_sounding(station_id, date_str, hour="00"):
     """
     Получить данные радиозондирования
 

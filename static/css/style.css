@@ -137,7 +137,7 @@ body {
 }
 
 .container {
-    max-width: 900px;
+    max-width: 1400px;
     margin: 20px auto;
     background: var(--card-bg);
     border-radius: 16px;
@@ -149,7 +149,7 @@ body {
 header {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: white;
-    padding: 40px 30px;
+    padding: 28px 30px;
     text-align: center;
 }
 
@@ -158,27 +158,89 @@ header {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px;
+    gap: 12px;
 }
 
 .logo-icon {
-    font-size: 3rem;
+    font-size: 2.2rem;
 }
 
 header h1 {
-    font-size: 2.5rem;
-    margin-bottom: 10px;
+    font-size: 2rem;
+    margin-bottom: 6px;
     font-weight: 700;
 }
 
 .subtitle {
-    font-size: 1.1rem;
+    font-size: 1rem;
     opacity: 0.9;
 }
 
 /* Main content */
 main {
-    padding: 40px 30px;
+    padding: 30px 24px;
+}
+
+/* Двухколоночная раскладка страницы */
+.page-layout {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 24px;
+}
+
+@media (min-width: 1100px) {
+    .page-layout {
+        grid-template-columns: 300px 1fr;
+        align-items: start;
+    }
+
+    .page-sidebar {
+        position: sticky;
+        top: 86px; /* ниже navbar */
+    }
+}
+
+.page-sidebar .input-section {
+    margin-bottom: 0;
+}
+
+/* Боксы настроек в сайдбаре */
+.sidebar-toggle-box {
+    margin-top: 14px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+    border-radius: 8px;
+    color: white;
+}
+
+.sidebar-refresh-box {
+    margin-top: 10px;
+    padding: 12px 14px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 8px;
+    color: white;
+}
+
+.toggle-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 500;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.toggle-label input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.refresh-timer-text {
+    margin-top: 8px;
+    font-size: 0.85rem;
+    opacity: 0.95;
 }
 
 /* Mode selector */
@@ -1365,4 +1427,330 @@ footer {
     .indices-container {
         padding: 10px;
     }
+}
+
+/* ==============================================
+   Архив METAR — компактная таблица
+   ============================================== */
+
+.archive-container {
+    max-width: 1300px;
+}
+
+.archive-table-wrap {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-top: 10px;
+}
+
+.archive-metar-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.82rem;
+    white-space: nowrap;
+}
+
+.archive-metar-table thead tr {
+    background: #1e3a5f;
+}
+
+.archive-metar-table th {
+    color: white;
+    padding: 9px 8px;
+    text-align: center;
+    font-weight: 600;
+    border: 1px solid #2d5a8e;
+    letter-spacing: 0.02em;
+}
+
+.archive-metar-table td {
+    padding: 5px 8px;
+    border: 1px solid #d1dce9;
+    text-align: center;
+    vertical-align: middle;
+}
+
+/* Первый столбец — дата — выравниваем влево */
+.archive-metar-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+}
+
+/* Цветовое кодирование строк */
+.archive-metar-table tr.row-good td        { background-color: #d4edda; }
+.archive-metar-table tr.row-moderate td    { background-color: #fff3cd; }
+.archive-metar-table tr.row-poor td        { background-color: #ffd9a8; }
+.archive-metar-table tr.row-severe td      { background-color: #f5b8b8; }
+.archive-metar-table tr.row-even td        { background-color: #ffffff; }
+.archive-metar-table tr.row-odd td         { background-color: #f5f8fc; }
+
+.archive-metar-table tbody tr:hover td {
+    filter: brightness(0.94);
+}
+
+/* Легенда цветов */
+.archive-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    font-size: 0.8rem;
+}
+
+.legend-item {
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid rgba(0,0,0,0.1);
+    font-weight: 500;
+}
+
+.legend-good     { background-color: #d4edda; }
+.legend-moderate { background-color: #fff3cd; }
+.legend-poor     { background-color: #ffd9a8; }
+.legend-severe   { background-color: #f5b8b8; }
+
+/* ==============================================
+   Airport Card v2 — двухколоночная карточка
+   ============================================== */
+
+.airport-card-v2 {
+    background: var(--card-bg);
+    border: 1px solid #b0c4de;
+    border-radius: 8px;
+    margin-bottom: 28px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+/* Шапка — тёмно-синяя полоса с именем станции */
+.card-title-bar {
+    background: #1e3a5f;
+    color: white;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    padding: 9px 16px;
+    letter-spacing: 0.03em;
+}
+
+/* Подшапка: имя, ссылка на архив, курсы ВПП */
+.card-subheader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 16px;
+    background: #eef3fa;
+    border-bottom: 1px solid #b0c4de;
+    gap: 20px;
+}
+
+.card-subheader-left {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.88rem;
+}
+
+.card-station-line {
+    font-size: 0.92rem;
+}
+
+.archive-link {
+    color: var(--primary-color);
+    text-decoration: underline;
+    font-size: 0.83rem;
+    cursor: pointer;
+}
+
+.card-runway {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+.runway-item {
+    white-space: nowrap;
+    font-weight: 500;
+}
+
+/* Основной двухколоночный грид */
+.card-body-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+}
+
+.card-metar-col,
+.card-taf-col {
+    padding: 12px 16px;
+}
+
+.card-metar-col {
+    border-right: 1px solid #b0c4de;
+}
+
+.card-col-title {
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-align: center;
+    padding: 5px 8px;
+    margin-bottom: 10px;
+    background: #dce8f7;
+    border-radius: 4px;
+    color: var(--text-primary);
+    border-bottom: 2px solid #b0c4de;
+    letter-spacing: 0.01em;
+}
+
+.card-fields {
+    font-size: 0.86rem;
+}
+
+/* Строки полей */
+.mf-row {
+    display: flex;
+    gap: 6px;
+    padding: 3px 0;
+    line-height: 1.45;
+    border-bottom: 1px solid #f0f4f8;
+}
+
+.mf-row:last-child { border-bottom: none; }
+
+.mf-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    min-width: 112px;
+    flex-shrink: 0;
+}
+
+.mf-value {
+    color: var(--text-primary);
+    flex: 1;
+}
+
+.mf-multiline {
+    align-items: flex-start;
+}
+
+.mf-multiline .mf-value {
+    line-height: 1.5;
+}
+
+.mf-indent {
+    padding-left: 14px;
+}
+
+.mf-section-header {
+    font-weight: 700;
+    color: var(--primary-color);
+    margin: 8px 0 3px;
+    font-size: 0.84rem;
+}
+
+.mf-change-header {
+    font-weight: 700;
+    color: #1e3a5f;
+    margin: 10px 0 3px;
+    font-size: 0.84rem;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+}
+
+.mf-taf-issue {
+    font-weight: 600;
+    padding: 3px 0;
+    line-height: 1.4;
+    border-bottom: 1px solid #f0f4f8;
+}
+
+.mf-taf-valid {
+    color: var(--text-secondary);
+    padding: 3px 0 6px;
+    font-size: 0.83rem;
+    border-bottom: 1px solid #e8eef6;
+    margin-bottom: 6px;
+}
+
+.mf-loading, .mf-empty {
+    color: var(--text-secondary);
+    font-style: italic;
+    padding: 8px 0;
+}
+
+/* Footer с raw-кодами */
+.card-raw-footer {
+    display: flex;
+    background: #f5f8fb;
+    border-top: 1px solid #b0c4de;
+}
+
+.card-raw-block {
+    flex: 1;
+    padding: 7px 14px;
+    border-right: 1px solid #b0c4de;
+    font-size: 0.76rem;
+    overflow-x: auto;
+    display: flex;
+    gap: 6px;
+    align-items: flex-start;
+}
+
+.card-raw-block:last-child { border-right: none; }
+
+.card-raw-label {
+    font-weight: 700;
+    color: var(--text-secondary);
+    white-space: nowrap;
+    font-size: 0.73rem;
+    margin-top: 1px;
+    flex-shrink: 0;
+}
+
+.card-raw-block code {
+    color: #3a3a3a;
+    font-family: 'Courier New', monospace;
+    word-break: break-word;
+    font-size: 0.76rem;
+    line-height: 1.4;
+}
+
+/* История METAR/TAF под карточкой */
+.card-history-wrapper {
+    padding: 14px 16px;
+    background: var(--background);
+    border-top: 2px solid #e2e8f0;
+}
+
+/* Стандартные высоты в таблице аэрологии */
+#sounding-table tr.row-standard-height td {
+    background-color: #dbeafe;
+    font-weight: 600;
+    color: #1e3a5f;
+}
+#sounding-table tr.row-standard-height td:first-child::after {
+    content: " ★";
+    color: #2563eb;
+    font-size: 0.75rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .card-body-grid {
+        grid-template-columns: 1fr;
+    }
+    .card-metar-col {
+        border-right: none;
+        border-bottom: 1px solid #b0c4de;
+    }
+    .card-raw-footer {
+        flex-direction: column;
+    }
+    .card-raw-block {
+        border-right: none;
+        border-bottom: 1px solid #b0c4de;
+    }
+    .card-raw-block:last-child { border-bottom: none; }
+    .mf-label { min-width: 95px; }
 }
