@@ -12,8 +12,8 @@ from typing import Dict, List, Optional, Tuple
 
 # Импортируем общие константы и справочные данные
 from constants import (
-    WEATHER_TRANSLATION, WEATHER_INTENSITY, WEATHER_DESC,
-    CLOUD_TRANSLATION, CLOUD_QUAL, INSTRUMENTAL_CASE
+    WEATHER_TRANSLATION, WEATHER_DESC,
+    CLOUD_TRANSLATION, CLOUD_QUAL, INSTRUMENTAL_CASE, translate_weather
 )
 
 # Регулярные выражения для TAF
@@ -37,72 +37,6 @@ class TAFDecoder:
 
     def __init__(self):
         pass
-
-    def _translate_weather(self, weather_dict: dict) -> str:
-        """Переводит погодное явление на русский язык с правильной грамматикой"""
-        intensity = weather_dict.get('intensity')
-        desc = weather_dict.get('desc')
-        phenomena = weather_dict.get('phenomena')
-
-        # Сначала пробуем найти комбинированное явление
-        if phenomena in WEATHER_TRANSLATION:
-            base = WEATHER_TRANSLATION[phenomena]
-        else:
-            # Если не нашли комбинацию, разбиваем на отдельные явления
-            parts = []
-            i = 0
-            while i < len(phenomena):
-                for length in [2]:  # Все коды явлений длиной 2 символа
-                    code = phenomena[i:i+length]
-                    if code in WEATHER_TRANSLATION:
-                        word = WEATHER_TRANSLATION[code]
-                        # Применяем творительный падеж для связки "с"
-                        word = INSTRUMENTAL_CASE.get(word, word)
-                        parts.append(word)
-                        i += length
-                        break
-                else:
-                    i += 1
-            base = ' с '.join(parts) if parts else phenomena
-
-        # Обрабатываем дескриптор
-        if desc:
-            # TS (гроза) обрабатываем особо
-            if desc == 'TS':
-                # Переводим базовое явление в творительный падеж
-                base_instr = INSTRUMENTAL_CASE.get(base, base)
-                if intensity == '+':
-                    return f"сильная гроза с {base_instr}"
-                elif intensity == '-':
-                    return f"слабая гроза с {base_instr}"
-                else:
-                    return f"гроза с {base_instr}"
-            # SH (ливневый) - уже может быть в комбинированном коде
-            elif desc == 'SH' and phenomena not in ['SHRA', 'SHSN', 'SHGR', 'SHGS', 'SHPL']:
-                desc_text = WEATHER_DESC.get(desc, desc)
-                if intensity == '+':
-                    return f"сильный {desc_text} {base}"
-                elif intensity == '-':
-                    return f"слабый {desc_text} {base}"
-                else:
-                    return f"{desc_text} {base}"
-            # Остальные дескрипторы
-            else:
-                desc_text = WEATHER_DESC.get(desc, desc)
-                if intensity == '+':
-                    return f"сильный {desc_text} {base}"
-                elif intensity == '-':
-                    return f"слабый {desc_text} {base}"
-                else:
-                    return f"{desc_text} {base}"
-
-        # Интенсивность без дескриптора
-        if intensity == '+':
-            return f"сильный {base}"
-        elif intensity == '-':
-            return f"слабый {base}"
-        else:
-            return base
 
     def decode(self, taf: str) -> dict:
         """
@@ -423,7 +357,7 @@ class TAFDecoder:
         if forecast.get('weather'):
             lines.append("Явления:")
             for w in forecast['weather']:
-                text = self._translate_weather(w)
+                text = translate_weather(w)
                 lines.append(f"  - {text}")
 
         if forecast.get('clouds'):

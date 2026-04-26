@@ -245,82 +245,120 @@ class AeroDataFetcher:
 
             indices = {}
 
-            # Функция для интерполяции значений на заданном уровне давления
-            def get_value_at_level(p_level, values):
-                if p_level in pressure:
-                    idx = np.where(pressure == p_level)[0][0]
-                    return values[idx]
-                # Линейная интерполяция
+            def get_value_at_level(p_level, values, max_gap_hpa=250):
+                # Ищем уровень с допуском ±0.5 гПа (избегаем float-сравнения)
+                close = np.where(np.abs(pressure - p_level) <= 0.5)[0]
+                if len(close) > 0:
+                    return values[close[0]]
                 if p_level > pressure.max() or p_level < pressure.min():
                     return None
-                idx = np.searchsorted(pressure[::-1], p_level)
+                # Интерполяция по log(P) — температура линейна по высоте, не по P
+                log_p = np.log(pressure[::-1])
+                log_target = np.log(p_level)
+                idx = np.searchsorted(log_p, log_target)
                 if idx == 0 or idx >= len(pressure):
                     return None
                 p1, p2 = pressure[::-1][idx - 1], pressure[::-1][idx]
+                # Если уровни слишком далеко — интерполяция ненадёжна
+                if abs(p1 - p2) > max_gap_hpa:
+                    return None
                 v1, v2 = values[::-1][idx - 1], values[::-1][idx]
-                return v1 + (v2 - v1) * (p_level - p1) / (p2 - p1)
+                lp1, lp2 = np.log(p1), np.log(p2)
+                return v1 + (v2 - v1) * (log_target - lp1) / (lp2 - lp1)
 
-            # Индекс Фауста (Faust Index)
-            # FI = T850 - T500
-            # Оценка: < 24°C - устойчиво, 24-28°C - слабая неустойчивость,
-            # 28-32°C - умеренная, > 32°C - сильная неустойчивость
+            # Интерполируем все нужные уровни один раз
             t850 = get_value_at_level(850, temperature)
+            t700 = get_value_at_level(700, temperature)
             t500 = get_value_at_level(500, temperature)
+            td850 = get_value_at_level(850, dewpoint)
+            td700 = get_value_at_level(700, dewpoint)
 
+            # Базовые параметры уровней
+            if t850 is not None:
+                indices["t850"] = round(t850, 1)
+            if t700 is not None:
+                indices["t700"] = round(t700, 1)
+            if t500 is not None:
+                indices["t500"] = round(t500, 1)
+            if td850 is not None:
+                indices["td850"] = round(td850, 1)
+            if td700 is not None:
+                indices["td700"] = round(td700, 1)
+
+            # Индекс Фауста: FI = T850 - T500
+            # < 24 — устойчиво, 24-28 — слабая, 28-32 — умеренная, > 32 — сильная
             if t850 is not None and t500 is not None:
-                faust_index = t850 - t500
-                indices["faust"] = round(faust_index, 1)
-
-                # Оценка индекса Фауста
-                if faust_index < 24:
+                fi = t850 - t500
+                indices["faust"] = round(fi, 1)
+                if fi < 24:
                     indices["faust_rating"] = "Устойчиво"
-                    indices["faust_color"] = "#4CAF50"  # зеленый
-                elif faust_index < 28:
+                    indices["faust_color"] = "#4CAF50"
+                elif fi < 28:
                     indices["faust_rating"] = "Слабая неустойчивость"
-                    indices["faust_color"] = "#FFC107"  # желтый
-                elif faust_index < 32:
+                    indices["faust_color"] = "#FFC107"
+                elif fi < 32:
                     indices["faust_rating"] = "Умеренная неустойчивость"
-                    indices["faust_color"] = "#FF9800"  # оранжевый
+                    indices["faust_color"] = "#FF9800"
                 else:
                     indices["faust_rating"] = "Сильная неустойчивость"
-                    indices["faust_color"] = "#F44336"  # красный
+                    indices["faust_color"] = "#F44336"
 
-            # Индекс Вайтинга (Whiting Index)
-            # WI = T850 - T500 - (Td850 - 10)
-            # где Td850 - точка росы на 850 гПа
-            # Оценка: < -3 - конвекция маловероятна, -3...0 - слабая вероятность,
-            # 0...4 - умеренная, > 4 - высокая вероятность гроз
-            td850 = get_value_at_level(850, dewpoint)
-
+            # Индекс Вайтинга: WI = (T850 - T500) - (Td850 - 10)
+            # < -3 — маловероятна, -3...0 — слабая, 0...4 — умеренная, > 4 — высокая
             if t850 is not None and t500 is not None and td850 is not None:
-                whiting_index = (t850 - t500) - (td850 - 10)
-                indices["whiting"] = round(whiting_index, 1)
-
-                # Оценка индекса Вайтинга
-                if whiting_index < -3:
+                wi = (t850 - t500) - (td850 - 10)
+                indices["whiting"] = round(wi, 1)
+                if wi < -3:
                     indices["whiting_rating"] = "Конвекция маловероятна"
-                    indices["whiting_color"] = "#4CAF50"  # зеленый
-                elif whiting_index < 0:
+                    indices["whiting_color"] = "#4CAF50"
+                elif wi < 0:
                     indices["whiting_rating"] = "Слабая вероятность"
-                    indices["whiting_color"] = "#8BC34A"  # светло-зеленый
-                elif whiting_index < 4:
+                    indices["whiting_color"] = "#8BC34A"
+                elif wi < 4:
                     indices["whiting_rating"] = "Умеренная вероятность гроз"
-                    indices["whiting_color"] = "#FF9800"  # оранжевый
+                    indices["whiting_color"] = "#FF9800"
                 else:
                     indices["whiting_rating"] = "Высокая вероятность гроз"
-                    indices["whiting_color"] = "#F44336"  # красный
+                    indices["whiting_color"] = "#F44336"
 
-            # Добавим также базовые параметры для информации
-            t850_val = get_value_at_level(850, temperature)
-            t500_val = get_value_at_level(500, temperature)
-            td850_val = get_value_at_level(850, dewpoint)
+            # K-индекс: K = T850 - T500 + Td850 - (T700 - Td700)
+            # < 20 — маловероятна, 20-25 — <20%, 26-30 — 20-40%, 31-35 — 40-60%, > 35 — >60%
+            if all(v is not None for v in [t850, t700, t500, td850, td700]):
+                ki = t850 - t500 + td850 - (t700 - td700)
+                indices["k_index"] = round(ki, 1)
+                if ki < 20:
+                    indices["k_rating"] = "Гроза маловероятна"
+                    indices["k_color"] = "#4CAF50"
+                elif ki < 26:
+                    indices["k_rating"] = "Слабая вероятность (<20%)"
+                    indices["k_color"] = "#8BC34A"
+                elif ki < 31:
+                    indices["k_rating"] = "Умеренная вероятность (20–40%)"
+                    indices["k_color"] = "#FFC107"
+                elif ki < 36:
+                    indices["k_rating"] = "Высокая вероятность (40–60%)"
+                    indices["k_color"] = "#FF9800"
+                else:
+                    indices["k_rating"] = "Очень высокая вероятность (>60%)"
+                    indices["k_color"] = "#F44336"
 
-            if t850_val is not None:
-                indices["t850"] = round(t850_val, 1)
-            if t500_val is not None:
-                indices["t500"] = round(t500_val, 1)
-            if td850_val is not None:
-                indices["td850"] = round(td850_val, 1)
+            # Total Totals: TT = T850 + Td850 - 2·T500
+            # < 44 — маловероятна, 44-50 — слабая, 50-55 — умеренная, > 55 — высокая
+            if t850 is not None and t500 is not None and td850 is not None:
+                tt = t850 + td850 - 2 * t500
+                indices["total_totals"] = round(tt, 1)
+                if tt < 44:
+                    indices["tt_rating"] = "Гроза маловероятна"
+                    indices["tt_color"] = "#4CAF50"
+                elif tt < 50:
+                    indices["tt_rating"] = "Слабая вероятность гроз"
+                    indices["tt_color"] = "#FFC107"
+                elif tt < 55:
+                    indices["tt_rating"] = "Умеренная вероятность гроз"
+                    indices["tt_color"] = "#FF9800"
+                else:
+                    indices["tt_rating"] = "Высокая вероятность гроз"
+                    indices["tt_color"] = "#F44336"
 
             return indices
 

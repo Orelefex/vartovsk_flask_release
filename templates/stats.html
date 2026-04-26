@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="ru">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Статистика посещений - Meteostart.ru</title>
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+        <style>
+            .stats-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 16px;
+                margin-bottom: 30px;
+            }
+            .stat-card {
+                background: white;
+                border-radius: 12px;
+                padding: 20px 24px;
+                border: 1px solid var(--border-color);
+                box-shadow: var(--shadow);
+                text-align: center;
+            }
+            .stat-card .stat-label {
+                font-size: 0.85rem;
+                color: var(--text-secondary);
+                margin-bottom: 8px;
+                text-transform: uppercase;
+                letter-spacing: 0.05em;
+            }
+            .stat-card .stat-value {
+                font-size: 2.2rem;
+                font-weight: 700;
+                color: var(--primary-color);
+                line-height: 1;
+            }
+            .stat-card .stat-sub {
+                font-size: 0.8rem;
+                color: var(--text-secondary);
+                margin-top: 6px;
+            }
+            .stat-card.accent { border-top: 4px solid var(--primary-color); }
+            .stat-card.green  { border-top: 4px solid #16a34a; }
+            .stat-card.orange { border-top: 4px solid #ea580c; }
+            .stat-card.purple { border-top: 4px solid #7c3aed; }
+
+            .chart-wrap {
+                position: relative;
+                height: 280px;
+            }
+            .page-table {
+                width: 100%;
+                border-collapse: collapse;
+            }
+            .page-table th {
+                background: var(--primary-color);
+                color: white;
+                padding: 10px 14px;
+                text-align: left;
+                font-weight: 600;
+            }
+            .page-table td {
+                padding: 10px 14px;
+                border-bottom: 1px solid var(--border-color);
+            }
+            .page-table tr:last-child td { border-bottom: none; }
+            .page-table tr:nth-child(even) td { background: #f8fafc; }
+            .bar-cell { min-width: 120px; }
+            .bar-bg {
+                background: #e2e8f0;
+                border-radius: 4px;
+                height: 10px;
+                overflow: hidden;
+            }
+            .bar-fill {
+                height: 100%;
+                background: var(--primary-color);
+                border-radius: 4px;
+                transition: width 0.4s ease;
+            }
+            .hour-grid {
+                display: grid;
+                grid-template-columns: repeat(12, 1fr);
+                gap: 4px;
+            }
+            @media (max-width: 600px) {
+                .hour-grid { grid-template-columns: repeat(6, 1fr); }
+            }
+            .hour-cell {
+                text-align: center;
+                border-radius: 6px;
+                padding: 8px 2px;
+                font-size: 0.72rem;
+                color: white;
+                font-weight: 600;
+            }
+            .hour-label {
+                font-size: 0.7rem;
+                color: var(--text-secondary);
+                margin-bottom: 2px;
+                text-align: center;
+            }
+            .two-col {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+            @media (max-width: 768px) {
+                .two-col { grid-template-columns: 1fr; }
+            }
+            .section-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                color: var(--text-primary);
+                margin: 0 0 16px;
+                padding-bottom: 10px;
+                border-bottom: 2px solid var(--border-color);
+            }
+        </style>
+    </head>
+    <body>
+        <nav class="navbar">
+            <div class="nav-container">
+                <div class="nav-logo">
+                    <a href="/"><span class="logo-icon"></span><span class="logo-text">Meteostart.ru</span></a>
+                </div>
+                <button class="nav-toggle" id="nav-toggle"><span></span><span></span><span></span></button>
+                <ul class="nav-menu" id="nav-menu">
+                    <li class="nav-item"><a href="/" class="nav-link">METAR/TAF</a></li>
+                    <li class="nav-item"><a href="/aero" class="nav-link">Аэрологические диаграммы</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="container">
+            <header>
+                <div class="header-logo">
+                    <span class="logo-icon"></span>
+                    <h1>Статистика посещений</h1>
+                </div>
+                <p class="subtitle">Аналитика посещаемости Meteostart.ru</p>
+            </header>
+
+            <main>
+                {% if not stats %}
+                <div class="error-message">Нет данных для отображения</div>
+                {% else %}
+
+                <!-- Сводные карточки -->
+                <div class="stats-grid">
+                    <div class="stat-card accent">
+                        <div class="stat-label">Всего посещений</div>
+                        <div class="stat-value">{{ stats.total | default(0) }}</div>
+                        <div class="stat-sub">{{ stats.unique_total }} уникальных IP</div>
+                    </div>
+                    <div class="stat-card green">
+                        <div class="stat-label">Сегодня</div>
+                        <div class="stat-value">{{ stats.today.visits }}</div>
+                        <div class="stat-sub">{{ stats.today.unique }} уникальных</div>
+                    </div>
+                    <div class="stat-card orange">
+                        <div class="stat-label">За 7 дней</div>
+                        <div class="stat-value">{{ stats.week.visits }}</div>
+                        <div class="stat-sub">{{ stats.week.unique }} уникальных</div>
+                    </div>
+                    <div class="stat-card purple">
+                        <div class="stat-label">За 30 дней</div>
+                        <div class="stat-value">{{ stats.month.visits }}</div>
+                        <div class="stat-sub">{{ stats.month.unique }} уникальных</div>
+                    </div>
+                </div>
+
+                <!-- График посещений за 30 дней -->
+                {% if stats.daily %}
+                <div class="result-card" style="margin-bottom: 20px;">
+                    <div class="section-title">Посещения за последние 30 дней</div>
+                    <div class="chart-wrap">
+                        <canvas id="dailyChart"></canvas>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="two-col">
+                    <!-- По страницам -->
+                    <div class="result-card">
+                        <div class="section-title">По страницам</div>
+                        {% if stats.by_page %}
+                        {% set max_visits = stats.by_page[0].visits %}
+                        <table class="page-table">
+                            <thead>
+                                <tr>
+                                    <th>Страница</th>
+                                    <th>Посещений</th>
+                                    <th>Уникальных</th>
+                                    <th class="bar-cell"></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in stats.by_page %}
+                                <tr>
+                                    <td>{{ row.page }}</td>
+                                    <td><strong>{{ row.visits }}</strong></td>
+                                    <td>{{ row.unique }}</td>
+                                    <td class="bar-cell">
+                                        <div class="bar-bg">
+                                            <div class="bar-fill"
+                                                 style="width: {{ (row.visits / max_visits * 100) | round | int }}%"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                        {% else %}
+                        <p style="color: var(--text-secondary);">Нет данных</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- По часам суток -->
+                    <div class="result-card">
+                        <div class="section-title">Активность по часам (UTC)</div>
+                        {% if stats.by_hour %}
+                        {% set max_hour = stats.by_hour | map(attribute='count') | max %}
+                        <div style="margin-bottom: 6px;">
+                            <div class="hour-grid">
+                                {% for h in range(0, 24) %}
+                                {% set row = stats.by_hour | selectattr('hour', 'equalto', h) | list %}
+                                {% set cnt = row[0].count if row else 0 %}
+                                {% set pct = (cnt / max_hour * 100) | round | int if max_hour > 0 else 0 %}
+                                {% set r = (13 + pct * 0.76) | round | int %}
+                                {% set g = (71 + pct * 0.44) | round | int %}
+                                {% set b = (161 - pct * 0.9) | round | int %}
+                                <div>
+                                    <div class="hour-label">{{ '%02d' % h }}</div>
+                                    <div class="hour-cell"
+                                         title="{{ cnt }} посещений в {{ '%02d' % h }}:xx UTC"
+                                         style="background: rgba({{ r }}, {{ g }}, {{ b }}, {{ [0.15 + pct / 110, 1.0] | min | round(2) }});">
+                                        {{ cnt if cnt > 0 else '' }}
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <p style="font-size:0.78rem; color: var(--text-secondary); margin-top: 10px;">
+                            Интенсивность: светлый → тёмный
+                        </p>
+                        {% else %}
+                        <p style="color: var(--text-secondary);">Нет данных</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% endif %}
+            </main>
+
+            <footer>
+                <p><strong>Meteostart.ru</strong> - Авиационная метеорология</p>
+                <p class="sources">Всего посещений: {{ total_visits }} &nbsp;|&nbsp; <a href="/stats" style="color:inherit;text-decoration:underline;opacity:0.8;">Статистика</a></p>
+            </footer>
+        </div>
+
+        {% if stats and stats.daily %}
+        <script>
+            const days    = {{ stats.daily | map(attribute='day')    | list | tojson }};
+            const visits  = {{ stats.daily | map(attribute='visits') | list | tojson }};
+            const uniques = {{ stats.daily | map(attribute='unique') | list | tojson }};
+
+            new Chart(document.getElementById('dailyChart'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [
+                        {
+                            label: 'Посещения',
+                            data: visits,
+                            backgroundColor: 'rgba(37, 99, 235, 0.7)',
+                            borderColor: 'rgba(37, 99, 235, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                        },
+                        {
+                            label: 'Уникальных',
+                            data: uniques,
+                            backgroundColor: 'rgba(22, 163, 74, 0.6)',
+                            borderColor: 'rgba(22, 163, 74, 1)',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                        },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: { mode: 'index', intersect: false },
+                    },
+                    scales: {
+                        x: { grid: { display: false } },
+                        y: { beginAtZero: true, grid: { color: '#e2e8f0' } },
+                    },
+                },
+            });
+        </script>
+        {% endif %}
+
+        <script>
+            const navToggle = document.getElementById('nav-toggle');
+            const navMenu   = document.getElementById('nav-menu');
+            navToggle.addEventListener('click', () => {
+                navMenu.classList.toggle('active');
+                navToggle.classList.toggle('active');
+            });
+            document.addEventListener('click', (e) => {
+                if (!navMenu.contains(e.target) && !navToggle.contains(e.target)) {
+                    navMenu.classList.remove('active');
+                    navToggle.classList.remove('active');
+                }
+            });
+        </script>
+    </body>
+</html>

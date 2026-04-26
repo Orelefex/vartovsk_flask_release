@@ -98,3 +98,53 @@ INSTRUMENTAL_CASE = {
     'туман': 'туманом',
     'дымка': 'дымкой'
 }
+
+
+def translate_weather(weather_dict: dict) -> str:
+    """Переводит погодное явление на русский язык с правильной грамматикой"""
+    intensity = weather_dict.get('intensity')
+    desc = weather_dict.get('desc')
+    phenomena = weather_dict.get('phenomena')
+
+    if phenomena in WEATHER_TRANSLATION:
+        base = WEATHER_TRANSLATION[phenomena]
+    else:
+        parts = []
+        i = 0
+        while i < len(phenomena):
+            for length in [2]:
+                code = phenomena[i:i+length]
+                if code in WEATHER_TRANSLATION:
+                    word = WEATHER_TRANSLATION[code]
+                    word = INSTRUMENTAL_CASE.get(word, word)
+                    parts.append(word)
+                    i += length
+                    break
+            else:
+                i += 1
+        base = ' с '.join(parts) if parts else phenomena
+
+    if desc:
+        if desc == 'TS':
+            base_instr = INSTRUMENTAL_CASE.get(base, base)
+            if intensity == '+':
+                return f"сильная гроза с {base_instr}"
+            elif intensity == '-':
+                return f"слабая гроза с {base_instr}"
+            else:
+                return f"гроза с {base_instr}"
+        else:
+            desc_text = WEATHER_DESC.get(desc, desc)
+            if intensity == '+':
+                return f"сильный {desc_text} {base}"
+            elif intensity == '-':
+                return f"слабый {desc_text} {base}"
+            else:
+                return f"{desc_text} {base}"
+
+    if intensity == '+':
+        return f"сильный {base}"
+    elif intensity == '-':
+        return f"слабый {base}"
+    else:
+        return base

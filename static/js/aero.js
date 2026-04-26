@@ -169,10 +169,10 @@ document.addEventListener("DOMContentLoaded", function () {
         indices.faust_color +
         '">' +
         indices.faust +
-        "°C</div>";
+        "</div>";
       html += '<div class="index-rating">' + indices.faust_rating + "</div>";
       html +=
-        '<div class="index-formula">FI = T<sub>850</sub> - T<sub>500</sub></div>';
+        '<div class="index-formula">FI = T<sub>850</sub> − T<sub>500</sub></div>';
       if (indices.t850 !== undefined && indices.t500 !== undefined) {
         html += '<div class="index-details">';
         html += "T<sub>850</sub> = " + indices.t850 + "°C, ";
@@ -194,15 +194,61 @@ document.addEventListener("DOMContentLoaded", function () {
         indices.whiting_color +
         '">' +
         indices.whiting +
-        "°C</div>";
+        "</div>";
       html += '<div class="index-rating">' + indices.whiting_rating + "</div>";
       html +=
-        '<div class="index-formula">WI = T<sub>850</sub> - T<sub>500</sub> - (Td<sub>850</sub> - 10)</div>';
-      if (indices.td850 !== undefined) {
+        '<div class="index-formula">WI = T<sub>850</sub> − T<sub>500</sub> − (Td<sub>850</sub> − 10)</div>';
+      if (indices.t850 !== undefined && indices.t500 !== undefined && indices.td850 !== undefined) {
         html += '<div class="index-details">';
+        html += "T<sub>850</sub> = " + indices.t850 + "°C, ";
+        html += "T<sub>500</sub> = " + indices.t500 + "°C, ";
         html += "Td<sub>850</sub> = " + indices.td850 + "°C";
         html += "</div>";
       }
+      html += "</div>";
+    }
+
+    // K-индекс
+    if (indices.k_index !== undefined) {
+      html +=
+        '<div class="index-card" style="border-left: 4px solid ' +
+        indices.k_color +
+        '">';
+      html += '<div class="index-header">K-индекс</div>';
+      html +=
+        '<div class="index-value" style="color: ' +
+        indices.k_color +
+        '">' +
+        indices.k_index +
+        "</div>";
+      html += '<div class="index-rating">' + indices.k_rating + "</div>";
+      html +=
+        '<div class="index-formula">K = T<sub>850</sub> − T<sub>500</sub> + Td<sub>850</sub> − (T<sub>700</sub> − Td<sub>700</sub>)</div>';
+      if (indices.t700 !== undefined && indices.td700 !== undefined) {
+        html += '<div class="index-details">';
+        html += "T<sub>700</sub> = " + indices.t700 + "°C, ";
+        html += "Td<sub>700</sub> = " + indices.td700 + "°C";
+        html += "</div>";
+      }
+      html += "</div>";
+    }
+
+    // Total Totals
+    if (indices.total_totals !== undefined) {
+      html +=
+        '<div class="index-card" style="border-left: 4px solid ' +
+        indices.tt_color +
+        '">';
+      html += '<div class="index-header">Total Totals</div>';
+      html +=
+        '<div class="index-value" style="color: ' +
+        indices.tt_color +
+        '">' +
+        indices.total_totals +
+        "</div>";
+      html += '<div class="index-rating">' + indices.tt_rating + "</div>";
+      html +=
+        '<div class="index-formula">TT = T<sub>850</sub> + Td<sub>850</sub> − 2·T<sub>500</sub></div>';
       html += "</div>";
     }
 
@@ -214,294 +260,262 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function createTemperatureChart(data) {
-    // Skew-T диаграмма требует специального преобразования координат
-    // X координата = T + (1000 - P) * skew_factor
-    const skewFactor = 0.04; // Наклон изотерм (градусы на гПа)
+    const skewFactor = 0.04;
 
-    // Преобразуем координаты для Skew-T
-    const tempX = data.temperature.map(
-      (t, i) => t + (1000 - data.pressure[i]) * skewFactor,
-    );
-    const dewpointX = data.dewpoint.map(
-      (t, i) => t + (1000 - data.pressure[i]) * skewFactor,
-    );
-
-    // Линия температуры
-    const tempTrace = {
-      x: tempX,
-      y: data.pressure,
-      mode: "lines+markers",
-      name: "Температура",
-      line: { color: "#FF0000", width: 2.5 },
-      marker: { size: 5, color: "#FF0000" },
-      hovertemplate: "T: %{text}°C<br>P: %{y} гПа<extra></extra>",
-      text: data.temperature.map((t) => t.toFixed(1)),
-    };
-
-    // Линия точки росы
-    const dewpointTrace = {
-      x: dewpointX,
-      y: data.pressure,
-      mode: "lines+markers",
-      name: "Точка росы",
-      line: { color: "#00AA00", width: 2.5 },
-      marker: { size: 5, color: "#00AA00" },
-      hovertemplate: "Td: %{text}°C<br>P: %{y} гПа<extra></extra>",
-      text: data.dewpoint.map((t) => t.toFixed(1)),
-    };
-
-    // Создаем изотермы (вертикальные линии на Skew-T)
-    // Оптимизация: уменьшаем количество линий на слабых устройствах
-    const isotherms = [];
-    const isothermStep = isLowPerformance ? 20 : 10;
-    const pressureStep = isLowPerformance ? 100 : 50;
-
-    for (let temp = -80; temp <= 40; temp += isothermStep) {
-      const x = [];
-      const y = [];
-      for (let p = 1050; p >= 100; p -= pressureStep) {
-        x.push(temp + (1000 - p) * skewFactor);
-        y.push(p);
-      }
-      isotherms.push({
-        x: x,
-        y: y,
-        mode: "lines",
-        line: { color: "#B0BEC5", width: 0.5, dash: "dot" },
-        showlegend: false,
-        hoverinfo: "skip",
-      });
+    function satVP(T_C) {
+      return 6.1121 * Math.exp((17.502 * T_C) / (T_C + 240.97));
     }
 
-    // Создаем сухие адиабаты (наклонные линии)
-    // Оптимизация: меньше линий для слабых устройств
-    const dryAdiabats = [];
-    const theta0Values = isLowPerformance
-      ? [-40, 0, 40, 80]
-      : [-40, -20, 0, 20, 40, 60, 80, 100];
-    const adiabatStep = isLowPerformance ? 20 : 10;
+    function moistStep(T_C, P_hPa, dP_hPa) {
+      const T_K = T_C + 273.15;
+      const Lv = 2.501e6, Cp = 1004, Rd = 287, Rv = 461.5;
+      const es = satVP(T_C);
+      const ws = 0.622 * es / Math.max(P_hPa - es, 1e-6);
+      const num = 1 + (Lv * ws) / (Rd * T_K);
+      const den = 1 + (Lv * Lv * ws) / (Cp * Rv * T_K * T_K);
+      const dTdP = (Rd * T_K) / (P_hPa * 100 * Cp) * (num / den);
+      return T_C + dTdP * dP_hPa * 100;
+    }
 
-    for (let theta0 of theta0Values) {
-      const x = [];
-      const y = [];
-      for (let p = 1050; p >= 100; p -= adiabatStep) {
-        const t = theta0 * Math.pow(p / 1000, 0.286) - 273.15;
-        x.push(t + (1000 - p) * skewFactor);
+    const tempX = data.temperature.map((t, i) => t + (1000 - data.pressure[i]) * skewFactor);
+    const dewpointX = data.dewpoint.map((t, i) => t + (1000 - data.pressure[i]) * skewFactor);
+
+    const heightLabels = data.pressure.map((_, i) => {
+      const h = data.height && data.height[i] != null ? `${Math.round(data.height[i])} м` : "—";
+      return h;
+    });
+
+    const tempTrace = {
+      x: tempX, y: data.pressure,
+      mode: "lines+markers", name: "Температура",
+      line: { color: "#E53935", width: 2.5 },
+      marker: { size: 5, color: "#E53935" },
+      text: data.temperature.map((t) => t.toFixed(1)),
+      customdata: heightLabels,
+      hovertemplate: "T: %{text}°C<br>P: %{y} гПа<br>H: %{customdata}<extra></extra>",
+    };
+
+    const dewpointTrace = {
+      x: dewpointX, y: data.pressure,
+      mode: "lines+markers", name: "Точка росы",
+      line: { color: "#43A047", width: 2.5 },
+      marker: { size: 5, color: "#43A047" },
+      text: data.dewpoint.map((t) => t.toFixed(1)),
+      customdata: heightLabels,
+      hovertemplate: "Td: %{text}°C<br>P: %{y} гПа<br>H: %{customdata}<extra></extra>",
+    };
+
+    // Изотермы (0°C рисуем отдельно)
+    const isotherms = [];
+    const isothermStep = isLowPerformance ? 20 : 10;
+    for (let T = -80; T <= 40; T += isothermStep) {
+      if (T === 0) continue;
+      const x = [], y = [];
+      for (let p = 1050; p >= 100; p -= 50) {
+        x.push(T + (1000 - p) * skewFactor);
+        y.push(p);
+      }
+      isotherms.push({ x, y, mode: "lines", line: { color: "#CFD8DC", width: 0.5, dash: "dot" }, showlegend: false, hoverinfo: "skip" });
+    }
+
+    // Изотерма 0°C — выделяем синим
+    const zeroX = [], zeroY = [];
+    for (let p = 1050; p >= 100; p -= 50) {
+      zeroX.push(0 + (1000 - p) * skewFactor);
+      zeroY.push(p);
+    }
+    const zeroIsotherm = {
+      x: zeroX, y: zeroY,
+      mode: "lines", name: "0°C",
+      line: { color: "#1565C0", width: 2 },
+      showlegend: true, hoverinfo: "skip",
+    };
+
+    // Сухие адиабаты: θ = T_surface + 273.15 K
+    const dryAdiabats = [];
+    const thetaSurface = isLowPerformance ? [-20, 20, 60] : [-20, 0, 20, 40, 60, 80];
+    for (let idx = 0; idx < thetaSurface.length; idx++) {
+      const theta_K = thetaSurface[idx] + 273.15;
+      const x = [], y = [];
+      for (let p = 1050; p >= 100; p -= 10) {
+        const T_C = theta_K * Math.pow(p / 1000, 0.286) - 273.15;
+        x.push(T_C + (1000 - p) * skewFactor);
         y.push(p);
       }
       dryAdiabats.push({
-        x: x,
-        y: y,
-        mode: "lines",
-        line: { color: "#FFCCBC", width: 0.5 },
-        showlegend: false,
+        x, y, mode: "lines",
+        name: idx === 0 ? "Сухие адиабаты" : undefined,
+        showlegend: idx === 0,
+        line: { color: "#FFCCBC", width: 0.8 },
         hoverinfo: "skip",
       });
     }
 
-    // Изобары (горизонтальные линии)
-    const isobars = [];
-    const pressureLevels = [1000, 850, 700, 500, 300, 200, 100];
-    for (let p of pressureLevels) {
-      isobars.push({
-        x: [-100 + (1000 - p) * skewFactor, 60 + (1000 - p) * skewFactor],
-        y: [p, p],
-        mode: "lines",
-        line: { color: "#90A4AE", width: 1 },
-        showlegend: false,
+    // Мокрые (насыщенные) адиабаты
+    const moistAdiabats = [];
+    const moistT0 = isLowPerformance ? [-10, 10, 30] : [-20, -10, 0, 10, 20, 30];
+    for (let idx = 0; idx < moistT0.length; idx++) {
+      const x = [], y = [];
+      let T = moistT0[idx];
+      for (let p = 1000; p >= 100; p -= 10) {
+        x.push(T + (1000 - p) * skewFactor);
+        y.push(p);
+        T = moistStep(T, p, -10);
+      }
+      moistAdiabats.push({
+        x, y, mode: "lines",
+        name: idx === 0 ? "Мокрые адиабаты" : undefined,
+        showlegend: idx === 0,
+        line: { color: "#4FC3F7", width: 0.8, dash: "dash" },
         hoverinfo: "skip",
       });
     }
+
+    // Изобары — горизонтальные линии на стандартных уровнях
+    const pressureLevels = [1000, 850, 700, 500, 300, 200, 100];
+    const isobars = pressureLevels.map((p) => ({
+      x: [-60, 60],
+      y: [p, p],
+      mode: "lines",
+      line: { color: "#B0BEC5", width: 0.8 },
+      showlegend: false, hoverinfo: "skip",
+    }));
 
     const layout = {
-      title: {
-        text: "Skew-T диаграмма",
-        font: { size: 18, weight: "bold" },
-      },
+      title: { text: "Skew-T диаграмма", font: { size: 18 }, x: 0.5, xanchor: "center" },
       xaxis: {
         title: "Температура (°C)",
-        gridcolor: "#E0E0E0",
-        showgrid: true,
+        showgrid: false,
         zeroline: false,
         range: [-60, 60],
       },
       yaxis: {
         title: "Давление (гПа)",
         type: "log",
-        autorange: "reversed",
-        gridcolor: "#E0E0E0",
-        showgrid: true,
         range: [Math.log10(1050), Math.log10(100)],
+        tickmode: "array",
+        tickvals: [100, 200, 300, 500, 700, 850, 1000],
+        ticktext: ["100", "200", "300", "500", "700", "850", "1000"],
+        showgrid: false,
       },
       plot_bgcolor: "#FAFAFA",
       paper_bgcolor: "white",
       hovermode: "closest",
       showlegend: true,
-      legend: {
-        x: 0.02,
-        y: 0.98,
-        bgcolor: "rgba(255,255,255,0.9)",
-        bordercolor: "#BDBDBD",
-        borderwidth: 1,
-      },
+      legend: { x: 0.02, y: 0.98, bgcolor: "rgba(255,255,255,0.9)", bordercolor: "#BDBDBD", borderwidth: 1 },
+      margin: { l: 65, r: 65, t: 60, b: 60 },
     };
 
-    const traces = [
-      ...isobars,
-      ...isotherms,
-      ...dryAdiabats,
-      tempTrace,
-      dewpointTrace,
-    ];
-
-    // Настройки Plotly с оптимизацией для слабых устройств
-    const config = {
-      responsive: true,
-      displayModeBar: !isLowPerformance, // Скрываем панель инструментов на слабых устройствах
-      staticPlot: isLowPerformance, // Отключаем интерактивность на слабых устройствах для повышения производительности
-    };
-
-    Plotly.newPlot("temp-chart", traces, layout, config);
+    const traces = [...isobars, ...isotherms, zeroIsotherm, ...dryAdiabats, ...moistAdiabats, tempTrace, dewpointTrace];
+    Plotly.newPlot("temp-chart", traces, layout, { responsive: true, displayModeBar: !isLowPerformance, staticPlot: isLowPerformance });
   }
 
   function createWindChart(data) {
-    // Вычисляем скорость и направление ветра
-    const windSpeed = [];
-    const windDirection = [];
-
-    for (let i = 0; i < data.u_wind.length; i++) {
-      const u = data.u_wind[i];
+    const windSpeed = data.u_wind.map((u, i) => {
       const v = data.v_wind[i];
-      const speed = Math.sqrt(u * u + v * v);
-      const dir = ((Math.atan2(u, v) * 180) / Math.PI + 180) % 360;
-      windSpeed.push(speed);
-      windDirection.push(dir);
-    }
+      return Math.sqrt(u * u + v * v);
+    });
+    const windDirection = data.u_wind.map((u, i) => {
+      const v = data.v_wind[i];
+      return ((Math.atan2(u, v) * 180) / Math.PI + 180) % 360;
+    });
 
-    // График скорости ветра
-    const windSpeedTrace = {
+    const maxSpeed = Math.max(...windSpeed);
+    const speedMax = Math.max(maxSpeed * 1.15, 30);
+
+    // Профиль скорости с hover-подсказкой о направлении
+    const speedTrace = {
       x: windSpeed,
       y: data.pressure,
       mode: "lines+markers",
-      name: "Скорость ветра",
-      line: { color: "#0066CC", width: 2.5 },
-      marker: { size: 5, color: "#0066CC" },
-      hovertemplate: "Скорость: %{x:.1f} км/ч<br>P: %{y} гПа<extra></extra>",
+      name: "Скорость (км/ч)",
+      line: { color: "#0D47A1", width: 2.5 },
+      marker: {
+        size: 6,
+        color: windSpeed,
+        colorscale: [[0, "#4CAF50"], [0.4, "#FFC107"], [0.7, "#FF9800"], [1, "#F44336"]],
+        cmin: 0, cmax: Math.max(maxSpeed, 100),
+        showscale: false,
+      },
+      text: windDirection.map((d) => `${Math.round(d)}°`),
+      hovertemplate: "Скорость: %{x:.1f} км/ч<br>Направление: %{text}<br>P: %{y} гПа<extra></extra>",
     };
 
-    // Создаем барбы (перья) ветра
-    const windBarbs = [];
-    const barbInterval = Math.max(1, Math.floor(data.pressure.length / 20)); // Показываем ~20 барб
+    // Легенда для стрелок направления
+    const dirLegendTrace = {
+      x: [null], y: [null],
+      mode: "markers",
+      marker: { symbol: "arrow-up", size: 12, color: "#E53935" },
+      name: "Направление",
+      showlegend: true,
+      hoverinfo: "skip",
+    };
 
-    for (let i = 0; i < data.pressure.length; i += barbInterval) {
-      const speed = windSpeed[i];
-      const dir = windDirection[i];
-      const p = data.pressure[i];
-
-      // Длина барба пропорциональна скорости
-      const barbLength = Math.min(speed / 5, 15); // Масштаб
-
-      // Направление в радианах (откуда дует ветер)
-      const dirRad = (dir * Math.PI) / 180;
-
-      // Координаты стрелки
-      const x0 = 0;
-      const x1 = -barbLength * Math.sin(dirRad);
-
-      // Добавляем стрелку
-      windBarbs.push({
-        x: [x0, x1],
-        y: [p, p],
-        mode: "lines",
-        line: { color: "#333333", width: 2 },
-        showlegend: false,
-        hovertemplate: `${speed.toFixed(1)} км/ч, ${dir.toFixed(0)}°<extra></extra>`,
-      });
-
-      // Добавляем оперение (флажки)
-      const numFlags = Math.floor(speed / 50); // 1 флажок = 50 км/ч
-      const numBarbs = Math.floor((speed - numFlags * 50) / 10); // 1 перо = 10 км/ч
-
-      let currentPos = 0.7; // Начальная позиция на барбе
-
-      // Рисуем флажки
-      for (let f = 0; f < numFlags; f++) {
-        const barbX = x1 * currentPos;
-        const flagX = barbX - 3 * Math.cos(dirRad);
-        const flagY = p;
-
-        windBarbs.push({
-          x: [barbX, flagX, barbX - 1.5 * Math.sin(dirRad)],
-          y: [flagY, flagY, flagY],
-          mode: "lines",
-          fill: "toself",
-          fillcolor: "#333333",
-          line: { color: "#333333", width: 1 },
-          showlegend: false,
-          hoverinfo: "skip",
-        });
-
-        currentPos -= 0.15;
+    // Стрелки на стандартных уровнях давления
+    const standardLevels = [1000, 850, 700, 500, 300, 200, 100];
+    const arrowIndices = [];
+    for (const target of standardLevels) {
+      let closest = -1, minDiff = Infinity;
+      for (let i = 0; i < data.pressure.length; i++) {
+        const diff = Math.abs(data.pressure[i] - target);
+        if (diff < minDiff) { minDiff = diff; closest = i; }
       }
-
-      // Рисуем короткие перья
-      for (let b = 0; b < numBarbs; b++) {
-        const barbX = x1 * currentPos;
-        const pX = barbX - 2 * Math.cos(dirRad);
-
-        windBarbs.push({
-          x: [barbX, pX],
-          y: [p, p],
-          mode: "lines",
-          line: { color: "#333333", width: 1.5 },
-          showlegend: false,
-          hoverinfo: "skip",
-        });
-
-        currentPos -= 0.1;
-      }
+      if (closest !== -1 && minDiff <= 75) arrowIndices.push(closest);
     }
 
+    // ax/ay — смещение хвоста от острия в пикселях экрана (ось y: вниз = +).
+    // Для ветра, дующего ИЗ направления d, воздух движется В направление moveDir.
+    // Формула: ax = −sin(rad)·L, ay = cos(rad)·L даёт правильную ориентацию стрелки.
+    const arrowLen = 16;
+    const dirAnnotations = arrowIndices.map((i) => {
+      const d = windDirection[i];
+      const moveDir = (d + 180) % 360;
+      const rad = (moveDir * Math.PI) / 180;
+      return {
+        x: windSpeed[i],
+        y: data.pressure[i],
+        xref: "x", yref: "y",
+        ax: -Math.sin(rad) * arrowLen,
+        ay: Math.cos(rad) * arrowLen,
+        axref: "pixel", ayref: "pixel",
+        arrowhead: 2,
+        arrowsize: 1.2,
+        arrowwidth: 2,
+        arrowcolor: "#E53935",
+        showarrow: true,
+        text: "",
+      };
+    });
+
     const layout = {
-      title: {
-        text: "Профиль ветра (Барбы ветра)",
-        font: { size: 18, weight: "bold" },
-      },
+      title: { text: "Профиль ветра", font: { size: 18 }, x: 0.5, xanchor: "center" },
       xaxis: {
         title: "Скорость ветра (км/ч)",
+        range: [0, speedMax],
+        zeroline: false,
         gridcolor: "#E0E0E0",
-        range: [-20, Math.max(...windSpeed) + 10],
+        showgrid: true,
       },
       yaxis: {
         title: "Давление (гПа)",
         type: "log",
-        autorange: "reversed",
-        gridcolor: "#E0E0E0",
         range: [Math.log10(1050), Math.log10(100)],
+        tickmode: "array",
+        tickvals: [100, 200, 300, 500, 700, 850, 1000],
+        ticktext: ["100", "200", "300", "500", "700", "850", "1000"],
+        gridcolor: "#E0E0E0",
+        showgrid: true,
       },
+      annotations: dirAnnotations,
       plot_bgcolor: "#FAFAFA",
       paper_bgcolor: "white",
       hovermode: "closest",
       showlegend: true,
-      legend: {
-        x: 0.02,
-        y: 0.98,
-        bgcolor: "rgba(255,255,255,0.9)",
-        bordercolor: "#BDBDBD",
-        borderwidth: 1,
-      },
+      legend: { x: 0.02, y: 0.98, bgcolor: "rgba(255,255,255,0.9)", bordercolor: "#BDBDBD", borderwidth: 1 },
+      margin: { l: 65, r: 65, t: 60, b: 60 },
     };
 
-    const traces = [windSpeedTrace, ...windBarbs];
-
-    // Настройки Plotly с оптимизацией для слабых устройств
-    const config = {
-      responsive: true,
-      displayModeBar: !isLowPerformance,
-      staticPlot: isLowPerformance,
-    };
-
-    Plotly.newPlot("wind-chart", traces, layout, config);
+    Plotly.newPlot("wind-chart", [speedTrace, dirLegendTrace], layout, { responsive: true, displayModeBar: !isLowPerformance, staticPlot: isLowPerformance });
   }
 
   function createDataTable(data) {

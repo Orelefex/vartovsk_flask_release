@@ -19,11 +19,13 @@ from metar_decoder import MetarDecoder
 from ogimet_parser import OgimetParser
 from taf_decoder import TAFDecoder
 from validators import validate_date_range
+from visit_tracker import get_stats, get_total_visits, init_visits_db, record_visit
 
 logger = setup_logging(__name__)
 
 app = Flask(__name__)
 init_db()
+init_visits_db()
 metar_decoder = MetarDecoder()
 taf_decoder = TAFDecoder()
 ogimet_parser = OgimetParser()
@@ -222,6 +224,29 @@ def get_metar_taf_from_sources(icao):
     return final_metar, final_taf
 
 
+# --- Visit tracking ---
+
+_TRACKED_PAGES = {"/", "/aero", "/archive", "/stats"}
+
+
+@app.before_request
+def track_visit():
+    if request.path in _TRACKED_PAGES:
+        try:
+            ip = request.headers.get("X-Forwarded-For", request.remote_addr) or ""
+            record_visit(request.path, ip, request.headers.get("User-Agent", ""))
+        except Exception as e:
+            logger.debug("Tracking error: %s", e)
+
+
+@app.context_processor
+def inject_visit_count():
+    try:
+        return {"total_visits": get_total_visits()}
+    except Exception:
+        return {"total_visits": 0}
+
+
 # --- Routes ---
 
 
@@ -241,6 +266,12 @@ def aero():
 def archive():
     """Страница архива METAR/TAF"""
     return render_template("archive.html")
+
+
+@app.route("/stats")
+def stats():
+    """Страница аналитики посещений"""
+    return render_template("stats.html", stats=get_stats())
 
 
 @app.route("/airports/search", methods=["GET"])
