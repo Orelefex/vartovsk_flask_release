@@ -8,10 +8,6 @@ dependencies = [
     "beautifulsoup4>=4.14.2",
     "flask>=3.1.2",
     "gunicorn>=23.0.0",
-    "matplotlib>=3.10.6",
-    "metpy>=1.7.1",
-    "numpy>=2.3.3",
-    "plotly>=6.3.0",
     "python-dotenv>=1.1.1",
     "requests>=2.32.5",
 ]

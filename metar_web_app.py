@@ -1,6 +1,5 @@
 """
 Flask веб-приложение для декодирования METAR/TAF с автоматической загрузкой данных
-и построения аэрологических диаграмм
 """
 
 import csv
@@ -11,7 +10,6 @@ from pathlib import Path
 import requests
 from flask import Flask, jsonify, render_template, request
 
-from aero_data import fetch_sounding, get_stations
 from config import config
 from history_storage import get_cached, get_history_range, init_db, save_records
 from logger_config import setup_logging
@@ -226,7 +224,7 @@ def get_metar_taf_from_sources(icao):
 
 # --- Visit tracking ---
 
-_TRACKED_PAGES = {"/", "/aero", "/archive", "/stats"}
+_TRACKED_PAGES = {"/", "/archive", "/stats"}
 
 
 @app.before_request
@@ -254,12 +252,6 @@ def inject_visit_count():
 def index():
     """Главная страница"""
     return render_template("index.html")
-
-
-@app.route("/aero")
-def aero():
-    """Страница аэрологических диаграмм"""
-    return render_template("aero.html")
 
 
 @app.route("/archive")
@@ -501,52 +493,6 @@ def get_taf_archive():
     except Exception as e:
         return jsonify(
             {"success": False, "error": f"Ошибка при получении архива: {str(e)}"}
-        ), 500
-
-
-# API endpoints для аэрологических диаграмм
-
-
-@app.route("/aero/stations", methods=["GET"])
-def get_aero_stations():
-    """API endpoint для получения списка станций радиозондирования"""
-    try:
-        stations = get_stations()
-        return jsonify({"success": True, "stations": stations})
-    except Exception as e:
-        return jsonify({"success": False, "error": str(e)}), 500
-
-
-@app.route("/aero/fetch", methods=["POST"])
-def fetch_aero_data():
-    """API endpoint для получения данных радиозондирования"""
-    try:
-        station_id = request.json.get("station_id", "").strip()
-        date = request.json.get("date", "")  # Формат: YYYYMMDD
-        hour = request.json.get("hour", "00")  # '00' или '12'
-
-        if not station_id or not date:
-            return jsonify({"error": "Необходимо указать станцию и дату"}), 400
-
-        sounding_data, error_message = fetch_sounding(station_id, date, hour)
-
-        if error_message:
-            return jsonify({"success": False, "error": error_message}), 404
-
-        # Рассчитываем индексы неустойчивости
-        from aero_data import get_fetcher
-
-        fetcher = get_fetcher()
-        indices = fetcher.calculate_stability_indices(sounding_data)
-
-        # Добавляем индексы к данным
-        sounding_data["indices"] = indices
-
-        return jsonify({"success": True, "data": sounding_data})
-
-    except Exception as e:
-        return jsonify(
-            {"success": False, "error": f"Ошибка при получении данных: {str(e)}"}
         ), 500
 
 

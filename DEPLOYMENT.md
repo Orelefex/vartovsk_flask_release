@@ -23,9 +23,9 @@
 
 ### Минимальные:
 - **OS:** Ubuntu 20.04+ / Debian 11+ / CentOS 8+
-- **RAM:** 2 GB (рекомендуется 4 GB)
-- **CPU:** 2 cores
-- **Disk:** 10 GB свободного места
+- **RAM:** 1 GB
+- **CPU:** 1 core
+- **Disk:** 5 GB свободного места (venv занимает ~65 MB)
 - **Python:** 3.12+
 
 ### Необходимое ПО:
@@ -45,23 +45,19 @@ vartovsk_flask_web/
 ├── metar_decoder.py           # Декодер METAR
 ├── taf_decoder.py             # Декодер TAF
 ├── ogimet_parser.py           # Парсер Ogimet
-├── aero_data.py               # Аэрологические данные
 ├── pyproject.toml             # Зависимости проекта
 ├── uv.lock                    # Lock-файл зависимостей
 ├── ICAO.csv                   # База аэропортов
-├── aero_index.json            # Индекс аэростанций
 ├── README.md                  # Документация
 ├── DEPLOYMENT.md              # Эта инструкция
 ├── templates/                 # HTML шаблоны
 │   ├── index.html
-│   ├── aero.html
 │   └── archive.html
 └── static/                    # Статические файлы
     ├── css/
     │   └── style.css
     ├── js/
     │   ├── script.js
-    │   ├── aero.js
     │   └── archive.js
     └── favicon.ico (опционально)
 ```
@@ -222,55 +218,19 @@ python metar_web_app.py
 
 ## ⚙️ Настройка Gunicorn + systemd
 
-### 1. Создание конфигурации Gunicorn
+### 1. Конфигурация Gunicorn
 
-```bash
-# Создаем файл конфигурации
-nano ~/vartovsk_flask_web/gunicorn_config.py
-```
+Конфигурация уже есть в репозитории — `gunicorn_config.py`, дополнительно
+создавать её не нужно. Она рассчитана на сервер с 1 GB RAM: фиксированное
+число воркеров (не от `cpu_count()`, которая на слабом сервере может
+расплодить лишние процессы), `worker_class = "gthread"` — параллелизм для
+блокирующих запросов к avia-meteo/ogimet/uwyo даётся потоками, а не
+дорогими по памяти процессами. Число воркеров/потоков можно переопределить
+переменными окружения `GUNICORN_WORKERS` / `GUNICORN_THREADS`.
 
-Содержимое файла:
-
-```python
-# gunicorn_config.py
-import multiprocessing
-
-# Binding
-bind = "127.0.0.1:5001"
-
-# Worker processes
-workers = multiprocessing.cpu_count() * 2 + 1
-worker_class = "sync"
-worker_connections = 1000
-timeout = 120
-keepalive = 5
-
-# Logging
-accesslog = "/var/log/gunicorn/access.log"
-errorlog = "/var/log/gunicorn/error.log"
-loglevel = "info"
-
-# Process naming
-proc_name = "metarapp"
-
-# Server mechanics
-daemon = False
-pidfile = "/tmp/gunicorn_metarapp.pid"
-umask = 0
-user = None
-group = None
-tmp_upload_dir = None
-
-# SSL (если нужен HTTPS напрямую через gunicorn)
-# keyfile = "/path/to/keyfile"
-# certfile = "/path/to/certfile"
-```
-
-```bash
-# Создаем директорию для логов
-sudo mkdir -p /var/log/gunicorn
-sudo chown -R metarapp:metarapp /var/log/gunicorn
-```
+Логи по умолчанию идут в stdout/stderr (`accesslog = "-"`, `errorlog = "-"`),
+их перехватит systemd/journald — отдельная директория `/var/log/gunicorn` не
+требуется.
 
 ### 2. Создание systemd service файла
 
@@ -678,15 +638,20 @@ sudo nginx -t
 
 ### Проблема 4: Приложение медленно работает
 
+На 1 GB RAM не увеличивайте `workers` бездумно — каждый лишний процесс ест
+память. Сначала попробуйте увеличить только потоки (дешевле по RAM): в
+`[Service]` секции `metarapp.service` добавьте строку
+`Environment="GUNICORN_THREADS=6"`, затем:
+
 ```bash
-# Увеличьте количество workers в gunicorn_config.py
-# workers = (2 * CPU_CORES) + 1
+sudo systemctl daemon-reload
+sudo systemctl restart metarapp
 
 # Проверьте использование ресурсов
 htop
 
-# Проверьте логи на медленные запросы
-sudo tail -f /var/log/gunicorn/access.log
+# Проверьте логи на медленные запросы (идут в journald, т.к. accesslog = "-")
+sudo journalctl -u metarapp -f
 ```
 
 ### Проблема 5: Недостаточно памяти

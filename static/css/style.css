@@ -1,7 +1,7 @@
 /* Основные стили и переменные */
 :root {
-    --primary-color: #2563eb;
-    --primary-hover: #1d4ed8;
+    --primary-color: #15803d;
+    --primary-hover: #166534;
     --secondary-color: #64748b;
     --background: #f8fafc;
     --card-bg: #ffffff;
@@ -9,7 +9,7 @@
     --text-secondary: #64748b;
     --border-color: #e2e8f0;
     --error-color: #dc2626;
-    --success-color: #16a34a;
+    --success-color: #22c55e;
     --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 }
@@ -22,7 +22,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
     color: var(--text-primary);
     line-height: 1.6;
     min-height: 100vh;
@@ -64,7 +64,7 @@ body {
 }
 
 .nav-logo .logo-text {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -147,7 +147,7 @@ body {
 
 /* Header */
 header {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
     color: white;
     padding: 28px 30px;
     text-align: center;
@@ -216,7 +216,7 @@ main {
 .sidebar-refresh-box {
     margin-top: 10px;
     padding: 12px 14px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
     border-radius: 8px;
     color: white;
 }
@@ -338,7 +338,7 @@ main {
 /* Info box */
 .info-box {
     padding: 15px;
-    background: #e0f2fe;
+    background: #dcfce7;
     border-left: 4px solid var(--primary-color);
     border-radius: 8px;
     margin-bottom: 20px;
@@ -615,11 +615,11 @@ textarea:focus {
 }
 
 .metar-table tr.metar-raw-row:hover {
-    background-color: #e0f2fe;
+    background-color: #dcfce7;
 }
 
 .metar-table tr.metar-raw-row:hover td {
-    background-color: #e0f2fe;
+    background-color: #dcfce7;
 }
 
 .metar-table td.metar-arrow {
@@ -699,11 +699,11 @@ textarea:focus {
 }
 
 .metar-history-table tr.metar-history-row:hover {
-    background-color: #e0f2fe;
+    background-color: #dcfce7;
 }
 
 .metar-history-table tr.metar-history-row:hover td {
-    background-color: #e0f2fe;
+    background-color: #dcfce7;
 }
 
 .metar-history-table td.metar-time {
@@ -780,11 +780,11 @@ textarea:focus {
 }
 
 .taf-history-table tr.taf-history-row:hover {
-    background-color: #e0f2fe;
+    background-color: #dcfce7;
 }
 
 .taf-history-table tr.taf-history-row:hover td {
-    background-color: #e0f2fe;
+    background-color: #dcfce7;
 }
 
 .taf-history-table td.taf-time {
@@ -996,7 +996,7 @@ footer {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
     color: white;
     padding: 8px 12px;
     border-radius: 8px;
@@ -1073,7 +1073,7 @@ footer {
 }
 
 .airport-card-icao {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #15803d 0%, #22c55e 100%);
     color: white;
     padding: 4px 12px;
     border-radius: 6px;
@@ -1108,18 +1108,18 @@ footer {
 
     /* Упрощаем градиенты */
     body {
-        background: #667eea;
+        background: #15803d;
     }
 
     .nav-logo .logo-text {
-        background: #667eea;
+        background: #15803d;
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
     }
 
     .airport-card-icao {
-        background: #667eea;
+        background: #15803d;
     }
 
     /* Уменьшаем тени */
@@ -1248,13 +1248,6 @@ footer {
         display: block;
     }
 
-    /* Графики на полную ширину */
-    #temp-chart,
-    #wind-chart {
-        max-width: 100%;
-        overflow-x: auto;
-    }
-
     /* Панель с переключателями */
     .info-box {
         min-width: 100%;
@@ -1322,114 +1315,6 @@ footer {
 }
 
 /* ==============================================
-   Индексы неустойчивости атмосферы
-   ============================================== */
-
-.indices-container {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: var(--shadow);
-}
-
-.indices-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin-top: 15px;
-}
-
-.index-card {
-    background: var(--background);
-    border-radius: 10px;
-    padding: 20px;
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.index-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
-}
-
-.index-header {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 10px;
-}
-
-.index-value {
-    font-size: 2.5rem;
-    font-weight: 800;
-    margin: 15px 0;
-    text-align: center;
-}
-
-.index-rating {
-    font-size: 1rem;
-    font-weight: 600;
-    text-align: center;
-    padding: 8px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: 6px;
-    margin: 10px 0;
-    color: var(--text-primary);
-}
-
-.index-formula {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    text-align: center;
-    margin-top: 10px;
-    font-family: 'Courier New', monospace;
-    background: rgba(100, 116, 139, 0.1);
-    padding: 5px 10px;
-    border-radius: 4px;
-}
-
-.index-details {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    text-align: center;
-    margin-top: 8px;
-    font-style: italic;
-}
-
-/* Адаптивность для индексов */
-@media (max-width: 768px) {
-    .indices-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-    }
-
-    .index-value {
-        font-size: 2rem;
-    }
-
-    .indices-container {
-        padding: 15px;
-    }
-
-    .index-card {
-        padding: 15px;
-    }
-}
-
-@media (max-width: 480px) {
-    .index-value {
-        font-size: 1.8rem;
-    }
-
-    .index-header {
-        font-size: 1rem;
-    }
-
-    .indices-container {
-        padding: 10px;
-    }
-}
-
-/* ==============================================
    Архив METAR — компактная таблица
    ============================================== */
 
@@ -1452,7 +1337,7 @@ footer {
 }
 
 .archive-metar-table thead tr {
-    background: #1e3a5f;
+    background: #14532d;
 }
 
 .archive-metar-table th {
@@ -1460,13 +1345,13 @@ footer {
     padding: 9px 8px;
     text-align: center;
     font-weight: 600;
-    border: 1px solid #2d5a8e;
+    border: 1px solid #166534;
     letter-spacing: 0.02em;
 }
 
 .archive-metar-table td {
     padding: 5px 8px;
-    border: 1px solid #d1dce9;
+    border: 1px solid #d1e7d5;
     text-align: center;
     vertical-align: middle;
 }
@@ -1517,7 +1402,7 @@ footer {
 
 .airport-card-v2 {
     background: var(--card-bg);
-    border: 1px solid #b0c4de;
+    border: 1px solid #a3c9ab;
     border-radius: 8px;
     margin-bottom: 28px;
     overflow: hidden;
@@ -1526,7 +1411,7 @@ footer {
 
 /* Шапка — тёмно-синяя полоса с именем станции */
 .card-title-bar {
-    background: #1e3a5f;
+    background: #14532d;
     color: white;
     text-align: center;
     font-size: 1.05rem;
@@ -1541,8 +1426,8 @@ footer {
     justify-content: space-between;
     align-items: flex-start;
     padding: 10px 16px;
-    background: #eef3fa;
-    border-bottom: 1px solid #b0c4de;
+    background: #eef7ef;
+    border-bottom: 1px solid #a3c9ab;
     gap: 20px;
 }
 
@@ -1587,7 +1472,7 @@ footer {
 }
 
 .card-metar-col {
-    border-right: 1px solid #b0c4de;
+    border-right: 1px solid #a3c9ab;
 }
 
 .card-col-title {
@@ -1596,10 +1481,10 @@ footer {
     text-align: center;
     padding: 5px 8px;
     margin-bottom: 10px;
-    background: #dce8f7;
+    background: #dcf0e0;
     border-radius: 4px;
     color: var(--text-primary);
-    border-bottom: 2px solid #b0c4de;
+    border-bottom: 2px solid #a3c9ab;
     letter-spacing: 0.01em;
 }
 
@@ -1613,7 +1498,7 @@ footer {
     gap: 6px;
     padding: 3px 0;
     line-height: 1.45;
-    border-bottom: 1px solid #f0f4f8;
+    border-bottom: 1px solid #eef6ef;
 }
 
 .mf-row:last-child { border-bottom: none; }
@@ -1651,7 +1536,7 @@ footer {
 
 .mf-change-header {
     font-weight: 700;
-    color: #1e3a5f;
+    color: #14532d;
     margin: 10px 0 3px;
     font-size: 0.84rem;
     text-decoration: underline;
@@ -1662,14 +1547,14 @@ footer {
     font-weight: 600;
     padding: 3px 0;
     line-height: 1.4;
-    border-bottom: 1px solid #f0f4f8;
+    border-bottom: 1px solid #eef6ef;
 }
 
 .mf-taf-valid {
     color: var(--text-secondary);
     padding: 3px 0 6px;
     font-size: 0.83rem;
-    border-bottom: 1px solid #e8eef6;
+    border-bottom: 1px solid #e6f2e8;
     margin-bottom: 6px;
 }
 
@@ -1682,14 +1567,14 @@ footer {
 /* Footer с raw-кодами */
 .card-raw-footer {
     display: flex;
-    background: #f5f8fb;
-    border-top: 1px solid #b0c4de;
+    background: #f3f9f4;
+    border-top: 1px solid #a3c9ab;
 }
 
 .card-raw-block {
     flex: 1;
     padding: 7px 14px;
-    border-right: 1px solid #b0c4de;
+    border-right: 1px solid #a3c9ab;
     font-size: 0.76rem;
     overflow-x: auto;
     display: flex;
@@ -1723,18 +1608,6 @@ footer {
     border-top: 2px solid #e2e8f0;
 }
 
-/* Стандартные высоты в таблице аэрологии */
-#sounding-table tr.row-standard-height td {
-    background-color: #dbeafe;
-    font-weight: 600;
-    color: #1e3a5f;
-}
-#sounding-table tr.row-standard-height td:first-child::after {
-    content: " ★";
-    color: #2563eb;
-    font-size: 0.75rem;
-}
-
 /* Адаптивность */
 @media (max-width: 768px) {
     .card-body-grid {
@@ -1742,14 +1615,14 @@ footer {
     }
     .card-metar-col {
         border-right: none;
-        border-bottom: 1px solid #b0c4de;
+        border-bottom: 1px solid #a3c9ab;
     }
     .card-raw-footer {
         flex-direction: column;
     }
     .card-raw-block {
         border-right: none;
-        border-bottom: 1px solid #b0c4de;
+        border-bottom: 1px solid #a3c9ab;
     }
     .card-raw-block:last-child { border-bottom: none; }
     .mf-label { min-width: 95px; }

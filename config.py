@@ -24,7 +24,6 @@ class Config:
     REQUESTS_TIMEOUT = int(os.getenv('REQUESTS_TIMEOUT', '15'))
     OGIMET_TIMEOUT = int(os.getenv('OGIMET_TIMEOUT', '15'))
     AVIA_METEO_TIMEOUT = int(os.getenv('AVIA_METEO_TIMEOUT', '5'))
-    UWYO_TIMEOUT = int(os.getenv('UWYO_TIMEOUT', '30'))
 
     # URLs внешних источников
     AVIA_METEO_METAR_URL = os.getenv(
@@ -39,16 +38,11 @@ class Config:
         'OGIMET_BASE_URL',
         'https://ogimet.com/display_metars2.php'
     )
-    UWYO_SOUNDING_URL = os.getenv(
-        'UWYO_SOUNDING_URL',
-        'https://weather.uwyo.edu/cgi-bin/sounding'
-    )
 
     # Кэширование
     CACHE_ENABLED = os.getenv('CACHE_ENABLED', 'true').lower() == 'true'
     CACHE_TTL_METAR = int(os.getenv('CACHE_TTL_METAR', '300'))  # 5 минут
     CACHE_TTL_TAF = int(os.getenv('CACHE_TTL_TAF', '1800'))     # 30 минут
-    CACHE_TTL_SOUNDING = int(os.getenv('CACHE_TTL_SOUNDING', '3600'))  # 1 час
     CACHE_MAX_SIZE = int(os.getenv('CACHE_MAX_SIZE', '1000'))
 
     # Логирование
@@ -61,7 +55,6 @@ class Config:
 
     # Файлы данных
     ICAO_CSV_FILE = os.getenv('ICAO_CSV_FILE', 'ICAO.csv')
-    AERO_STATIONS_FILE = os.getenv('AERO_STATIONS_FILE', 'aero_index.json')
 
     @classmethod
     def validate(cls):
@@ -95,9 +88,6 @@ class Config:
         # Проверяем существование файлов данных
         if not Path(cls.ICAO_CSV_FILE).exists():
             errors.append(f"Файл ICAO_CSV_FILE не найден: {cls.ICAO_CSV_FILE}")
-
-        if not Path(cls.AERO_STATIONS_FILE).exists():
-            errors.append(f"Файл AERO_STATIONS_FILE не найден: {cls.AERO_STATIONS_FILE}")
 
         return errors
 

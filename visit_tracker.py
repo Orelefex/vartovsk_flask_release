@@ -95,7 +95,6 @@ def get_stats() -> dict:
 
     page_names = {
         "/":       "Главная (METAR/TAF)",
-        "/aero":   "Аэрология",
         "/archive": "Архив",
         "/stats":  "Статистика",
     }
